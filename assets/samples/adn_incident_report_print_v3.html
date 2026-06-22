@@ -1,0 +1,263 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.page{background:#fff;width:660px;margin:0 auto;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.header{background:#01974D;padding:26px 36px 22px;display:flex;justify-content:space-between;align-items:center}
+.header-right{text-align:right}
+.header-right .report-label{color:rgba(255,255,255,0.7);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500}
+.header-right .report-id{color:#fff;font-size:14px;font-weight:500;margin-top:2px}
+.severity-bar{background:#015C2F;padding:9px 36px;display:flex;align-items:center;gap:12px}
+.sev-label{color:rgba(255,255,255,0.55);font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em}
+.sev-badge{color:#fff;font-size:10px;font-weight:500;padding:3px 10px;border-radius:3px;letter-spacing:0.06em;text-transform:uppercase}
+.badge-major{background:#E85D00}
+.sev-type{background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.75)}
+.sev-meta{margin-left:auto;display:flex;gap:18px}
+.sev-meta-item{text-align:right}
+.sev-meta-item span{display:block;color:rgba(255,255,255,0.5);font-size:10px;text-transform:uppercase;letter-spacing:0.06em}
+.sev-meta-item strong{color:#fff;font-size:12px;font-weight:500}
+.body{padding:24px 36px}
+.exec-summary{background:#F4FAF7;border-left:3px solid #01974D;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:12px 15px;margin-bottom:18px}
+.exec-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#015C2F;font-weight:500;margin-bottom:4px}
+.exec-text{font-size:12.5px;color:#2C2C2A;line-height:1.6}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.info-card{background:#F8F8F7;border:0.5px solid #E0DFD7;border-radius:var(--border-radius-md);padding:11px 13px}
+.ic-label{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#888780;font-weight:500;margin-bottom:5px;display:flex;align-items:center;gap:5px}
+.ic-label i{font-size:12px}
+.ic-value{font-size:12.5px;color:#2C2C2A;line-height:1.5}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+.tag-blue{background:#E6F1FB;border:0.5px solid #85B7EB;border-radius:3px;padding:2px 8px;font-size:11px;color:#185FA5;font-weight:500}
+.tag-green{background:#E1F5EE;border:0.5px solid #9FE1CB;border-radius:3px;padding:2px 8px;font-size:11px;color:#0F6E56;font-weight:500}
+.section{margin-bottom:18px}
+.sec-title{font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#888780;font-weight:500;margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.sec-title::after{content:'';flex:1;height:0.5px;background:#E0DFD7}
+.sec-title i{font-size:13px;color:#01974D}
+.timeline{display:flex;flex-direction:column;gap:7px}
+.tl-item{display:flex;gap:10px;align-items:flex-start}
+.tl-dot{width:18px;height:18px;border-radius:50%;background:#E1F5EE;border:0.5px solid #9FE1CB;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.tl-dot i{font-size:10px;color:#0F6E56}
+.tl-title{font-size:12px;font-weight:500;color:#2C2C2A;margin-bottom:1px}
+.tl-text{font-size:11.5px;color:#5F5E5A;line-height:1.5}
+.team-list{display:flex;flex-direction:column;gap:8px}
+.team-item{display:flex;align-items:flex-start;gap:11px;padding:9px 12px;background:#F8F8F7;border:0.5px solid #E0DFD7;border-radius:var(--border-radius-md)}
+.avatar{width:30px;height:30px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:500;color:#0F6E56;flex-shrink:0;border:0.5px solid #9FE1CB;margin-top:1px}
+.team-name{font-size:12px;font-weight:500;color:#2C2C2A}
+.team-title{font-size:10.5px;color:#01974D;font-weight:500;margin-bottom:2px}
+.team-desc{font-size:11.5px;color:#5F5E5A;line-height:1.5}
+.attach-zone{border:0.5px solid #E0DFD7;border-radius:var(--border-radius-md);overflow:hidden;margin-bottom:18px}
+.attach-header{background:#F8F8F7;border-bottom:0.5px solid #E0DFD7;padding:8px 13px;font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#888780;font-weight:500;display:flex;align-items:center;gap:6px}
+.attach-header i{font-size:12px;color:#01974D}
+.attach-body{padding:12px 13px;display:flex;gap:10px;align-items:flex-start}
+.attach-thumb{border-radius:var(--border-radius-md);border:0.5px solid #E0DFD7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;flex-shrink:0}
+.thumb-img{width:96px;height:68px;background:#EAF3DE;border-radius:var(--border-radius-md);border:0.5px solid #C0DD97;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.thumb-img i{font-size:22px;color:#3B6D11}
+.thumb-img span{font-size:9px;color:#3B6D11;font-weight:500}
+.thumb-file{width:72px;height:50px;background:#F8F8F7;border-radius:var(--border-radius-md);border:0.5px solid #E0DFD7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.thumb-file i{font-size:16px;color:#B4B2A9}
+.thumb-file span{font-size:9px;color:#888780}
+.attach-info{flex:1}
+.attach-name{font-size:12px;font-weight:500;color:#2C2C2A;margin-bottom:2px}
+.attach-meta{font-size:11px;color:#888780;margin-bottom:6px}
+.attach-note{font-size:11.5px;color:#5F5E5A;line-height:1.5;background:#F8F8F7;border-radius:var(--border-radius-md);padding:7px 10px;border:0.5px solid #E0DFD7}
+.file-row{display:flex;gap:8px;margin-top:8px}
+.status-row{display:flex;align-items:center;gap:8px;padding:9px 13px;background:#EAF7F0;border:0.5px solid #9FE1CB;border-radius:var(--border-radius-md);margin-bottom:16px}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#01974D;flex-shrink:0}
+.status-text{font-size:12px;font-weight:500;color:#015C2F}
+.status-date{margin-left:auto;font-size:11px;color:#0F6E56}
+.footer{background:#F8F8F7;border-top:0.5px solid #E0DFD7;padding:12px 36px;display:flex;align-items:center;justify-content:space-between}
+.footer-left{font-size:10.5px;color:#888780}
+.footer-sig{display:flex;align-items:center;gap:8px}
+.sig-line{width:90px;height:0.5px;background:#B4B2A9}
+.sig-label{font-size:10px;color:#888780}
+</style>
+
+<h2 class="sr-only">ADN Diginet Incident Report — print-ready A4 template mockup</h2>
+
+<div class="page">
+
+  <div class="header">
+    <svg width="138" height="19" viewBox="0 0 236 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M26.5946 11.5368C23.6397 11.5368 21.2613 9.17568 21.2613 6.24216C21.2613 3.30864 18.8829 0.94751 15.9279 0.94751C12.973 0.94751 10.5946 3.30864 10.5946 6.24216C10.5946 9.17568 8.21623 11.5368 5.26126 11.5368C2.30631 11.5368 0 13.898 0 16.7957C0 19.7292 2.37838 22.0904 5.33333 22.0904C8.28829 22.0904 10.6667 19.7292 10.6667 16.7957C10.6667 13.8622 13.045 11.5011 16 11.5011C18.955 11.5011 21.3333 13.8622 21.3333 16.7957C21.3333 19.7292 23.7117 22.0904 26.6667 22.0904C29.6216 22.0904 32 19.7292 32 16.7957C31.9279 13.898 29.5495 11.5368 26.5946 11.5368Z" fill="white"/>
+      <path d="M16.0003 22.0903C13.1509 22.0903 10.8574 24.5112 10.8574 27.5189C10.8574 30.5266 13.1509 32.9475 16.0003 32.9475C18.8497 32.9475 21.1431 30.5266 21.1431 27.5189C21.1431 24.5112 18.8497 22.0903 16.0003 22.0903Z" fill="white"/>
+      <path d="M55.3918 7.23315C50.0435 7.23315 45.7139 11.579 45.7139 16.9474V26.6617H49.6068V20.8185H61.2493V26.6617H65.1424V16.9474C65.0699 11.579 60.7036 7.23315 55.3918 7.23315ZM49.5705 16.9474C49.5705 13.7337 52.19 11.1042 55.3918 11.1042C58.5933 11.1042 61.2133 13.7337 61.2133 16.9474H49.5705Z" fill="white"/>
+      <path d="M76.5717 7.23315H66.8574V26.6617H76.5717C81.9403 26.6617 86.286 22.324 86.286 16.9657C86.286 11.5709 81.9037 7.23315 76.5717 7.23315ZM76.5717 22.7614H70.7283V11.097H76.5717C79.7854 11.097 82.4151 13.7215 82.4151 16.9292C82.3786 20.1369 79.7854 22.7614 76.5717 22.7614Z" fill="white"/>
+      <path d="M97.7143 7.23315C92.3457 7.23315 88 11.579 88 16.9474V26.6617H91.9074V16.9474C91.9074 13.7337 94.5371 11.1042 97.7509 11.1042C100.965 11.1042 103.594 13.7337 103.594 16.9474V26.6617H107.429V16.9474C107.429 11.579 103.046 7.23315 97.7143 7.23315Z" fill="white"/>
+      <path d="M130.286 7.23315H120.571V26.6617H130.286C135.654 26.6617 140 22.324 140 16.9657C140 11.5709 135.618 7.23315 130.286 7.23315ZM130.286 22.7614H124.442V11.097H130.286C133.499 11.097 136.129 13.7215 136.129 16.9292C136.092 20.1369 133.499 22.7614 130.286 22.7614Z" fill="white"/>
+      <path d="M145.714 7.23315H141.714V26.6617H145.714V7.23315Z" fill="white"/>
+      <path d="M148 16.9657C148 22.324 152.218 26.6617 157.429 26.6617H166.857V14.9973H157.429V18.8976H163.1V22.7979H157.429C154.309 22.7979 151.757 20.1734 151.757 16.9657C151.757 13.758 154.309 11.1334 157.429 11.1334H166.857V7.23315H157.429C152.218 7.26961 148 11.6073 148 16.9657Z" fill="white"/>
+      <path d="M172.571 7.23315H169.143V26.6617H172.571V7.23315Z" fill="white"/>
+      <path d="M184.251 7.23315C179.06 7.23315 174.857 11.579 174.857 16.9474V26.6617H178.636V16.9474C178.636 13.7337 181.179 11.1042 184.286 11.1042C187.393 11.1042 189.936 13.7337 189.936 16.9474V26.6617H193.715V16.9474C193.679 11.579 189.441 7.23315 184.251 7.23315Z" fill="white"/>
+      <path d="M196 13.0654V20.8295C196 24.0372 198.547 26.6617 201.661 26.6617H214.857V22.7614H201.661C200.635 22.7614 199.786 21.8866 199.786 20.8295V18.8976H213.654V14.9973H199.786V13.0654C199.786 12.0083 200.635 11.1334 201.661 11.1334H214.857V7.23315H201.661C198.547 7.23315 196 9.85767 196 13.0654Z" fill="white"/>
+      <path d="M236 7.23315H217.143V11.1334H224.679V26.6617H228.464V11.1334H236V7.23315Z" fill="white"/>
+    </svg>
+    <div class="header-right">
+      <div class="report-label">Incident Report</div>
+      <div class="report-id">INC-2024-0803-001</div>
+    </div>
+  </div>
+
+  <div class="severity-bar">
+    <span class="sev-label">Severity</span>
+    <span class="sev-badge badge-major">Major</span>
+    <div style="margin-left:8px;display:flex;gap:5px">
+      <span class="sev-badge sev-type">Network</span>
+      <span class="sev-badge sev-type">Server</span>
+    </div>
+    <div class="sev-meta">
+      <div class="sev-meta-item"><span>Date</span><strong>03 Aug 2024</strong></div>
+      <div class="sev-meta-item"><span>Time</span><strong>14:32 BST</strong></div>
+      <div class="sev-meta-item"><span>Duration</span><strong>4h 17m</strong></div>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <div class="exec-summary">
+      <div class="exec-label">Executive summary</div>
+      <div class="exec-text">Multiple bank clients experienced delayed SMS delivery due to a partial connectivity loss between ADN's SMS platform and a third-party carrier. The issue has been fully resolved with permanent infrastructure improvements deployed.</div>
+    </div>
+
+    <div class="grid3">
+      <div class="info-card">
+        <div class="ic-label"><i class="ti ti-category" aria-hidden="true"></i>Incident type</div>
+        <div class="tags">
+          <span class="tag-blue">Network</span>
+          <span class="tag-blue">Server</span>
+        </div>
+      </div>
+      <div class="info-card" style="grid-column:span 2">
+        <div class="ic-label"><i class="ti ti-building" aria-hidden="true"></i>Affected clients</div>
+        <div class="tags">
+          <span class="tag-green">BRAC Bank</span>
+          <span class="tag-green">Dhaka Bank</span>
+          <span class="tag-green">City Bank</span>
+          <span class="tag-green">Eastern Bank</span>
+          <span class="tag-green">Mutual Trust Bank</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="info-card">
+        <div class="ic-label"><i class="ti ti-alert-triangle" aria-hidden="true"></i>Root cause</div>
+        <div class="ic-value" style="margin-top:3px">Asymmetric network path between ADN SMS server and Infozillion caused path congestion and delivery queue buildup at the carrier end.</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-label"><i class="ti ti-server" aria-hidden="true"></i>Affected system</div>
+        <div class="ic-value" style="margin-top:3px">ADN SMS Platform — GP single delivery path. DLR detection mechanism impacted. Queue overflow at third-party layer.</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title"><i class="ti ti-paperclip" aria-hidden="true"></i>Attachments</div>
+      <div class="attach-zone">
+        <div class="attach-header"><i class="ti ti-photo" aria-hidden="true"></i>Error log screenshot &amp; supporting evidence</div>
+        <div class="attach-body">
+          <div class="thumb-img">
+            <i class="ti ti-photo" aria-hidden="true"></i>
+            <span>error_log.png</span>
+          </div>
+          <div style="flex:1">
+            <div class="attach-name">error_log_aug03.png</div>
+            <div class="attach-meta">PNG · 284 KB · 03 Aug 2024, 15:10</div>
+            <div class="attach-note">Server console showing asymmetric path error at 14:32 BST. Queue depth reached 48,000 messages before path reconfiguration was applied.</div>
+            <div class="file-row">
+              <div class="thumb-file"><i class="ti ti-file-text" aria-hidden="true"></i><span>trace.log</span></div>
+              <div class="thumb-file"><i class="ti ti-code" aria-hidden="true"></i><span>stacktrace.txt</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title"><i class="ti ti-list-check" aria-hidden="true"></i>Immediate actions taken</div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div><div class="tl-title">Path configuration updated</div><div class="tl-text">Upload and download paths reconfigured from asymmetric to symmetric routing to eliminate path conflicts.</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div><div class="tl-title">Enhanced monitoring deployed</div><div class="tl-text">Real-time path congestion monitoring with automated alerts activated across all carrier paths.</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div><div class="tl-title">Path management logic enhanced</div><div class="tl-text">Additional validation checks added to the path management layer to prevent recurrence of this class of failure.</div></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"><i class="ti ti-check" aria-hidden="true"></i></div>
+          <div><div class="tl-title">Redundancy &amp; failover mechanisms added</div><div class="tl-text">Additional redundant paths and automatic failover capability implemented for uninterrupted service continuity.</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="sec-title"><i class="ti ti-users" aria-hidden="true"></i>Incident response team</div>
+      <div class="team-list">
+        <div class="team-item">
+          <div class="avatar">SR</div>
+          <div>
+            <div style="display:flex;align-items:baseline;gap:8px"><div class="team-name">Sohael Reza</div><div class="team-title">Incident Lead</div></div>
+            <div class="team-desc">Oversaw the full incident lifecycle — monitored escalation status, directed the response team, and approved all remediation actions taken during the outage window.</div>
+          </div>
+        </div>
+        <div class="team-item">
+          <div class="avatar">SH</div>
+          <div>
+            <div style="display:flex;align-items:baseline;gap:8px"><div class="team-name">Shameem Hasan</div><div class="team-title">Coordinator</div></div>
+            <div class="team-desc">Served as the central communication bridge between internal engineering teams and external parties including Infozillion and Grameenphone throughout the incident.</div>
+          </div>
+        </div>
+        <div class="team-item">
+          <div class="avatar">MR</div>
+          <div>
+            <div style="display:flex;align-items:baseline;gap:8px"><div class="team-name">Mizanur Rahman</div><div class="team-title">Incident Manager</div></div>
+            <div class="team-desc">Managed the end-to-end incident process, ensuring all steps aligned with ADN's incident management framework and that SLA timelines were tracked and reported.</div>
+          </div>
+        </div>
+        <div class="team-item">
+          <div class="avatar">MA</div>
+          <div>
+            <div style="display:flex;align-items:baseline;gap:8px"><div class="team-name">Mukaddass Ali</div><div class="team-title">Customer Relations</div></div>
+            <div class="team-desc">Coordinated with affected client KAM teams to provide timely status updates and managed client-facing communication until full service restoration was confirmed.</div>
+          </div>
+        </div>
+        <div class="team-item">
+          <div class="avatar">AH</div>
+          <div>
+            <div style="display:flex;align-items:baseline;gap:8px"><div class="team-name">Amir Hossain</div><div class="team-title">DevOps Engineer</div></div>
+            <div class="team-desc">Maintained continuous server-level monitoring during the incident, identified the asymmetric path root cause, and executed the live reconfiguration to restore normal routing.</div>
+          </div>
+        </div>
+        <div class="team-item">
+          <div class="avatar">TO</div>
+          <div>
+            <div style="display:flex;align-items:baseline;gap:8px"><div class="team-name">TechOPS Team</div><div class="team-title">Operations</div></div>
+            <div class="team-desc">First responders who detected the degradation, raised the incident ticket, and maintained active follow-up until all affected systems were confirmed stable.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-row">
+      <div class="status-dot"></div>
+      <span class="status-text">Incident closed — all systems restored to normal operation</span>
+      <span class="status-date">03 Aug 2024, 18:49 BST</span>
+    </div>
+
+    <div class="info-card">
+      <div class="ic-label"><i class="ti ti-bulb" aria-hidden="true"></i>Lessons learned</div>
+      <div class="ic-value" style="margin-top:4px;color:#5F5E5A">Cross-team communication and strict process compliance were the critical success factors in containing the impact. Long-term investment in automated path-shifting algorithms and regular infrastructure stress testing has been formally prioritized.</div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <div class="footer-left">ADN SMS &nbsp;·&nbsp; Confidential &nbsp;·&nbsp; INC-2024-0803-001 &nbsp;·&nbsp; Page 1 of 1</div>
+    <div class="footer-sig">
+      <div class="sig-line"></div>
+      <div class="sig-label">Authorized signatory</div>
+    </div>
+  </div>
+
+</div>

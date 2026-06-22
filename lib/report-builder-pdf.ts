@@ -1,5 +1,5 @@
 export async function downloadReportAsPDF(
-  element: HTMLElement,
+  container: HTMLElement,
   filename = "incident-report.pdf"
 ): Promise<void> {
   const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
@@ -11,7 +11,8 @@ export async function downloadReportAsPDF(
   const wasDark = htmlEl.classList.contains("dark")
   if (wasDark) htmlEl.classList.remove("dark")
 
-  // Let the browser repaint after class change before capturing
+  // Two rAF cycles so the browser finishes any pending layout/paint from the
+  // dark-mode class removal and the off-screen element being fully rendered.
   await new Promise<void>((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
   )
@@ -19,29 +20,34 @@ export async function downloadReportAsPDF(
   try {
     await document.fonts.ready
 
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-    })
+    // Collect all page divs in document order
+    const pageDivs = Array.from(
+      container.querySelectorAll<HTMLElement>("[data-pdf-page]")
+    ).sort((a, b) => Number(a.dataset.pdfPage) - Number(b.dataset.pdfPage))
 
-    const imgData = canvas.toDataURL("image/jpeg", 0.95)
-
-    // A4 at 96 dpi = 794 × 1123 px. We captured at exactly 794 CSS px wide.
-    const A4_W_MM = 210
-    const A4_H_MM = 297
-
-    const imgWidthMm = A4_W_MM
-    const imgHeightMm = (canvas.height / canvas.width) * A4_W_MM
-    const totalPages = Math.ceil(imgHeightMm / A4_H_MM)
+    // Fallback: capture entire container if no page divs found
+    if (pageDivs.length === 0) pageDivs.push(container)
 
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
 
-    for (let i = 0; i < totalPages; i++) {
+    for (let i = 0; i < pageDivs.length; i++) {
+      const pageEl = pageDivs[i]
+
+      const canvas = await html2canvas(pageEl, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        // Pin exactly to the page div's rendered size (794 × 1123 px)
+        width:  pageEl.offsetWidth,
+        height: pageEl.offsetHeight,
+      })
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.95)
+
       if (i > 0) pdf.addPage()
-      // Shift image up by one page height per page — PDF clips at page boundary
-      pdf.addImage(imgData, "JPEG", 0, -i * A4_H_MM, imgWidthMm, imgHeightMm)
+      // Fill the full A4 page — canvas aspect ratio matches A4 exactly
+      pdf.addImage(imgData, "JPEG", 0, 0, 210, 297)
     }
 
     pdf.save(filename)

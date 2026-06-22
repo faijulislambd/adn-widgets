@@ -47,8 +47,9 @@ export function ReportBuilderClient() {
   const [importError, setImportError] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
 
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const pdfCaptureRef = useRef<HTMLDivElement>(null)
+  const fileInputRef   = useRef<HTMLInputElement>(null)
+  const pdfCaptureRef  = useRef<HTMLDivElement>(null)
+  const previewPagesRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const storedSettings = loadSettings()
@@ -91,10 +92,14 @@ export function ReportBuilderClient() {
   }
 
   async function handleDownloadPDF() {
-    if (!pdfCaptureRef.current || pdfLoading) return
+    if (pdfLoading) return
+    // Prefer the live preview container (PDF = exactly what the user sees).
+    // Fall back to the always-rendered off-screen capture element.
+    const captureEl = previewPagesRef.current ?? pdfCaptureRef.current
+    if (!captureEl) return
     setPdfLoading(true)
     try {
-      await downloadReportAsPDF(pdfCaptureRef.current, "incident-report.pdf")
+      await downloadReportAsPDF(captureEl, "incident-report.pdf")
     } finally {
       setPdfLoading(false)
     }
@@ -306,12 +311,31 @@ export function ReportBuilderClient() {
         usedPredefinedIds={usedPredefinedIds}
       />
 
-      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <Dialog open={previewOpen} onOpenChange={(open) => {
+        setPreviewOpen(open)
+        if (!open) previewPagesRef.current = null
+      }}>
+        {/* max-w matches PDF page width (794px) + dialog padding (2×24px) */}
+        <DialogContent className="max-w-[858px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Report Preview</DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle>Report Preview</DialogTitle>
+              <button
+                onClick={handleDownloadPDF}
+                disabled={pdfLoading}
+                className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted disabled:opacity-50 mr-8"
+              >
+                {pdfLoading
+                  ? <Loader2 className="size-3.5 animate-spin" />
+                  : <Download className="size-3.5" />}
+                {pdfLoading ? "Generating…" : "Download PDF"}
+              </button>
+            </div>
           </DialogHeader>
-          <ReportPreview data={reportData} settings={settings} />
+          {/* ref here so PDF captures exactly what the user sees */}
+          <div ref={previewPagesRef} style={{ width: 794, maxWidth: "100%" }}>
+            <ReportPreview data={reportData} settings={settings} />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
