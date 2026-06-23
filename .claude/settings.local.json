@@ -2,7 +2,14 @@
   "permissions": {
     "allow": [
       "Bash(node -e \"const ts = require\\('typescript'\\); console.log\\(ts.version\\)\")",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(cat next.config.ts)",
+      "Bash(cat next.config.js)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(JSON.stringify\\({deps:p.dependencies, dev:p.devDependencies}, null, 2\\)\\)\")",
+      "Bash(npm install *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.dependencies.puppeteer\\)\")",
+      "Bash(npm uninstall *)",
+      "WebFetch(domain:adndiginet.com)"
     ]
   }
 }

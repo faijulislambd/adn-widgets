@@ -47,8 +47,7 @@ export function ReportBuilderClient() {
   const [importError, setImportError] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
 
-  const fileInputRef   = useRef<HTMLInputElement>(null)
-  const pdfCaptureRef  = useRef<HTMLDivElement>(null)
+  const fileInputRef    = useRef<HTMLInputElement>(null)
   const previewPagesRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -93,13 +92,9 @@ export function ReportBuilderClient() {
 
   async function handleDownloadPDF() {
     if (pdfLoading) return
-    // Prefer the live preview container (PDF = exactly what the user sees).
-    // Fall back to the always-rendered off-screen capture element.
-    const captureEl = previewPagesRef.current ?? pdfCaptureRef.current
-    if (!captureEl) return
     setPdfLoading(true)
     try {
-      await downloadReportAsPDF(captureEl, "incident-report.pdf")
+      await downloadReportAsPDF(buildReportData(), settings)
     } finally {
       setPdfLoading(false)
     }
@@ -279,23 +274,6 @@ export function ReportBuilderClient() {
         )}
       </div>
 
-      {/* Off-screen PDF capture element — always rendered at A4 width */}
-      <div
-        ref={pdfCaptureRef}
-        aria-hidden="true"
-        style={{
-          position: "fixed",
-          left: "-9999px",
-          top: 0,
-          width: "794px",
-          zIndex: -1,
-          pointerEvents: "none",
-          backgroundColor: "#ffffff",
-        }}
-      >
-        <ReportPreview data={reportData} settings={settings} pdfMode />
-      </div>
-
       {/* Modals */}
       <ReportSettingsModal
         open={settingsOpen}
@@ -311,10 +289,7 @@ export function ReportBuilderClient() {
         usedPredefinedIds={usedPredefinedIds}
       />
 
-      <Dialog open={previewOpen} onOpenChange={(open) => {
-        setPreviewOpen(open)
-        if (!open) previewPagesRef.current = null
-      }}>
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         {/* max-w matches PDF page width (794px) + dialog padding (2×24px) */}
         <DialogContent className="max-w-[858px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
