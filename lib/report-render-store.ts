@@ -1,3 +1,6 @@
+import { writeFileSync, readFileSync, existsSync, unlinkSync } from "fs"
+import { join } from "path"
+import { tmpdir } from "os"
 import type { ReportData, ReportSettings } from "@/types/report-builder"
 
 interface Entry {
@@ -6,21 +9,28 @@ interface Entry {
   expiry: number
 }
 
-const store = new Map<string, Entry>()
+function entryPath(id: string) {
+  return join(tmpdir(), `report-render-${id}.json`)
+}
 
 export function storeRenderData(data: ReportData, settings: ReportSettings): string {
   const id = crypto.randomUUID()
-  store.set(id, { data, settings, expiry: Date.now() + 120_000 }) // 2-min TTL
-  // Prune expired entries opportunistically
-  for (const [k, v] of store) if (v.expiry < Date.now()) store.delete(k)
+  const entry: Entry = { data, settings, expiry: Date.now() + 120_000 }
+  writeFileSync(entryPath(id), JSON.stringify(entry), "utf-8")
   return id
 }
 
 export function getRenderData(id: string): Entry | null {
-  const entry = store.get(id)
-  if (!entry || entry.expiry < Date.now()) {
-    store.delete(id)
+  const path = entryPath(id)
+  if (!existsSync(path)) return null
+  try {
+    const entry = JSON.parse(readFileSync(path, "utf-8")) as Entry
+    if (entry.expiry < Date.now()) {
+      unlinkSync(path)
+      return null
+    }
+    return entry
+  } catch {
     return null
   }
-  return entry
 }

@@ -9,7 +9,9 @@
       "Bash(python -c \"import fitz; print\\('fitz ok'\\)\")",
       "Bash(python -c \"import pypdf; print\\('pypdf ok'\\)\")",
       "Bash(python -c \"import pdfplumber; print\\('pdfplumber ok'\\)\")",
-      "Bash(pip install *)"
+      "Bash(pip install *)",
+      "Bash(node -e \"try { require\\('puppeteer'\\); console.log\\('puppeteer ok'\\); } catch\\(e\\) { console.log\\('puppeteer error:', e.message\\); }\")",
+      "Bash(node -e \"const p = require\\('puppeteer'\\); p.launch\\({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] }\\).then\\(b => { console.log\\('launch ok'\\); return b.close\\(\\); }\\).catch\\(e => console.log\\('launch error:', e.message\\)\\);\")"
     ]
   }
 }

@@ -41,7 +41,7 @@ const ITEM_GAP = 14; // vertical gap appended after every item when packing
 // PAGE1_AVAIL: actual overhead = full-header(~76) + severity(~44) + footer(~37) + body-pad(44) = 201px → 1123-201=922; subtract 17px buffer
 const PAGE1_AVAIL = 905;
 // PAGE_CONT_AVAIL: compact-header(~42) + cont-strip(~27) + footer(~37) + body-pad(44) = 150px → 1123-150=973; subtract 2px buffer
-const PAGE_CONT_AVAIL = 971;
+const PAGE_CONT_AVAIL = 981;
 
 // Team-table split overhead constants
 const TEAM_SPLIT_BOX_HEADER = 38;
@@ -1231,15 +1231,10 @@ function SeverityBar({
             color: "rgba(255,255,255,0.75)",
             fontSize: 10,
             fontWeight: 500,
-            padding: "0 10px",
+            padding: "3px 10px",
             borderRadius: 3,
-            lineHeight: "25px",
             letterSpacing: "0.06em",
             textTransform: "uppercase" as const,
-            display: "inline-flex",
-            height: 25,
-            alignItems: "center",
-            justifyContent: "center",
           }}
         >
           {platformLabel}

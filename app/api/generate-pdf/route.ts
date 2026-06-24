@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const page = await browser.newPage()
     await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 1 })
 
-    await page.goto(renderUrl, { waitUntil: "networkidle0", timeout: 30_000 })
+    await page.goto(renderUrl, { waitUntil: "load", timeout: 30_000 })
 
     // Wait until the React layout effect has computed page breaks
     await page.waitForSelector("[data-layout-complete]", { timeout: 15_000 })
@@ -45,10 +45,16 @@ export async function POST(request: Request) {
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
     })
 
+    const platform = (data.metadata.platform ?? "unknown").toLowerCase().replace(/[^a-z0-9]/g, "-")
+    const date = data.metadata.generatedAt
+      ? new Date(data.metadata.generatedAt).toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10)
+    const filename = `incident-report-${platform}-${date}.pdf`
+
     return new Response(Buffer.from(pdfBuffer), {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="incident-report.pdf"',
+        "Content-Disposition": `attachment; filename="${filename}"`,
       },
     })
   } finally {
