@@ -1,5 +1,6 @@
 import puppeteer, { Browser } from "puppeteer-core";
 import { existsSync } from "fs";
+import { join } from "path";
 
 const CHROME_PATHS: string[] = process.platform === "win32"
   ? [
@@ -43,19 +44,24 @@ async function launchBrowser(): Promise<Browser> {
     });
   }
 
-  const siteUrl = process.env.URL || process.env.DEPLOY_URL;
-  if (!siteUrl) {
+  const chromium = await import("@sparticuz/chromium-min");
+
+  // Local bundle path (Netlify included_files) — no network download needed
+  const localTar = join(process.cwd(), "public", "chromium-v149.0.0-pack.x64.tar");
+  const chromiumSource = existsSync(localTar)
+    ? localTar
+    : `${process.env.URL || process.env.DEPLOY_URL}/${localTar.split("/").pop()}`;
+
+  if (!existsSync(localTar) && !process.env.URL && !process.env.DEPLOY_URL) {
     throw new Error(
-      "No Chrome found. On cPanel: install chromium. On Netlify: URL env var must be set."
+      "No Chrome found. On cPanel: install chromium. On Netlify: deploy the project with chromium tar in public/."
     );
   }
 
-  const chromiumUrl = `${siteUrl}/chromium-v149.0.0-pack.x64.tar`;
-  const chromium = await import("@sparticuz/chromium-min");
   return puppeteer.launch({
     args: chromium.default.args,
     defaultViewport: { width: 1280, height: 720 },
-    executablePath: await chromium.default.executablePath(chromiumUrl),
+    executablePath: await chromium.default.executablePath(chromiumSource),
     headless: true,
   });
 }
