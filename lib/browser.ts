@@ -17,17 +17,25 @@ const CHROME_PATHS: string[] = process.platform === "win32"
       "/usr/local/bin/chromium",
     ];
 
+const CHROME_ARGS = [
+  "--no-sandbox",
+  "--disable-setuid-sandbox",
+  "--disable-dev-shm-usage",
+  "--disable-gpu",
+  "--disable-extensions",
+  "--disable-background-networking",
+  "--disable-sync",
+  "--no-first-run",
+  "--single-process",
+];
+
 function findSystemChrome(): string | null {
-  if (process.env.CHROME_EXECUTABLE_PATH) {
-    return process.env.CHROME_EXECUTABLE_PATH;
-  }
-  for (const path of CHROME_PATHS) {
-    if (existsSync(path)) return path;
+  if (process.env.CHROME_EXECUTABLE_PATH) return process.env.CHROME_EXECUTABLE_PATH;
+  for (const p of CHROME_PATHS) {
+    if (existsSync(p)) return p;
   }
   return null;
 }
-
-let cachedBrowser: Browser | null = null;
 
 async function launchBrowser(): Promise<Browser> {
   const systemChrome = findSystemChrome();
@@ -35,28 +43,16 @@ async function launchBrowser(): Promise<Browser> {
     return puppeteer.launch({
       executablePath: systemChrome,
       headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-      ],
+      args: CHROME_ARGS,
     });
   }
 
   const chromium = await import("@sparticuz/chromium-min");
 
-  // Local bundle path (Netlify included_files) — no network download needed
   const localTar = join(process.cwd(), "public", "chromium-v149.0.0-pack.x64.tar");
   const chromiumSource = existsSync(localTar)
     ? localTar
-    : `${process.env.URL || process.env.DEPLOY_URL}/${localTar.split("/").pop()}`;
-
-  if (!existsSync(localTar) && !process.env.URL && !process.env.DEPLOY_URL) {
-    throw new Error(
-      "No Chrome found. On cPanel: install chromium. On Netlify: deploy the project with chromium tar in public/."
-    );
-  }
+    : `${process.env.URL || process.env.DEPLOY_URL}/chromium-v149.0.0-pack.x64.tar`;
 
   return puppeteer.launch({
     args: chromium.default.args,
@@ -66,10 +62,25 @@ async function launchBrowser(): Promise<Browser> {
   });
 }
 
+let cachedBrowser: Browser | null = null;
+
 export async function getBrowser(): Promise<Browser> {
-  if (cachedBrowser && cachedBrowser.connected) {
+  if (cachedBrowser?.connected) {
     return cachedBrowser;
   }
+
+  // Clean up dead browser
+  if (cachedBrowser) {
+    try { await cachedBrowser.close(); } catch {}
+    cachedBrowser = null;
+  }
+
   cachedBrowser = await launchBrowser();
+
+  // Clear cache if browser disconnects unexpectedly
+  cachedBrowser.once("disconnected", () => {
+    cachedBrowser = null;
+  });
+
   return cachedBrowser;
 }
