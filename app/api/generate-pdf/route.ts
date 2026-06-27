@@ -1,5 +1,4 @@
 import { getBrowser } from "@/lib/browser"
-import { storeRenderData } from "@/lib/report-render-store"
 import type { ReportData, ReportSettings } from "@/types/report-builder"
 
 export const maxDuration = 60
@@ -16,8 +15,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "Invalid request body" }, { status: 400 })
   }
 
-  const id = storeRenderData(data, settings)
-
+  const id = crypto.randomUUID()
   const host = request.headers.get("host") ?? "localhost:3000"
   const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
   const renderUrl = `${protocol}://${host}/report-render?id=${id}`
@@ -28,10 +26,23 @@ export async function POST(request: Request) {
     page = await browser.newPage()
     await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 1 })
 
+    // Intercept the report-data API call and respond directly with data
+    // This avoids cross-instance /tmp file sharing issues on serverless
+    await page.setRequestInterception(true)
+    page.on("request", (req) => {
+      if (req.url().includes(`/api/report-data/${id}`)) {
+        req.respond({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ data, settings }),
+        })
+      } else {
+        req.continue()
+      }
+    })
+
     await page.goto(renderUrl, { waitUntil: "load", timeout: 30_000 })
-
     await page.waitForSelector("[data-layout-complete]", { timeout: 15_000 })
-
     await page.evaluate(
       () => new Promise<void>((r) => requestAnimationFrame(() => { r() })),
     )
@@ -54,6 +65,9 @@ export async function POST(request: Request) {
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     })
+  } catch (error) {
+    console.error("PDF generation error:", error)
+    return Response.json({ error: `PDF generation failed: ${String(error)}` }, { status: 500 })
   } finally {
     await page?.close()
   }
