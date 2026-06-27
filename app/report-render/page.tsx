@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { ReportPreview } from "@/components/report-builder/preview/ReportPreview"
 import type { ReportData, ReportSettings } from "@/types/report-builder"
@@ -10,7 +10,7 @@ interface RenderState {
   settings: ReportSettings
 }
 
-export default function ReportRenderPage() {
+function ReportRenderContent() {
   const searchParams = useSearchParams()
   const id = searchParams.get("id")
   const [renderState, setRenderState] = useState<RenderState | null>(null)
@@ -37,5 +37,13 @@ export default function ReportRenderPage() {
     <div style={{ background: "#fff" }}>
       <ReportPreview data={renderState.data} settings={renderState.settings} pdfMode />
     </div>
+  )
+}
+
+export default function ReportRenderPage() {
+  return (
+    <Suspense>
+      <ReportRenderContent />
+    </Suspense>
   )
 }
