@@ -22,10 +22,10 @@ export async function POST(request: Request) {
   const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
   const renderUrl = `${protocol}://${host}/report-render?id=${id}`
 
-  const browser = await getBrowser()
-
+  let page;
   try {
-    const page = await browser.newPage()
+    const browser = await getBrowser()
+    page = await browser.newPage()
     await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 1 })
 
     await page.goto(renderUrl, { waitUntil: "load", timeout: 30_000 })
@@ -55,6 +55,6 @@ export async function POST(request: Request) {
       },
     })
   } finally {
-    await browser.close()
+    await page?.close()
   }
 }

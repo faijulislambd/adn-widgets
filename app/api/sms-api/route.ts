@@ -14,10 +14,10 @@ export async function GET() {
     );
   }
 
-  let browser;
+  let page;
   try {
-    browser = await getBrowser();
-    const page = await browser.newPage();
+    const browser = await getBrowser();
+    page = await browser.newPage();
 
     await page.goto(url);
 
@@ -51,6 +51,6 @@ export async function GET() {
     console.error("Error occurred:", error);
     return Response.json({ error: String(error) }, { status: 500 });
   } finally {
-    await browser?.close();
+    await page?.close();
   }
 }

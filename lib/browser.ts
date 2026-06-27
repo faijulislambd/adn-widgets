@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer-core";
+import puppeteer, { Browser } from "puppeteer-core";
 import { existsSync } from "fs";
 
 const CHROME_PATHS: string[] = process.platform === "win32"
@@ -26,8 +26,9 @@ function findSystemChrome(): string | null {
   return null;
 }
 
-export async function getBrowser() {
-  // cPanel VPS: system Chrome auto-detect
+let cachedBrowser: Browser | null = null;
+
+async function launchBrowser(): Promise<Browser> {
   const systemChrome = findSystemChrome();
   if (systemChrome) {
     return puppeteer.launch({
@@ -42,8 +43,6 @@ export async function getBrowser() {
     });
   }
 
-  // Netlify: chromium tar public/ folder থেকে serve হয়
-  // Netlify automatically sets process.env.URL = "https://your-site.netlify.app"
   const siteUrl = process.env.URL || process.env.DEPLOY_URL;
   if (!siteUrl) {
     throw new Error(
@@ -59,4 +58,12 @@ export async function getBrowser() {
     executablePath: await chromium.default.executablePath(chromiumUrl),
     headless: true,
   });
+}
+
+export async function getBrowser(): Promise<Browser> {
+  if (cachedBrowser && cachedBrowser.connected) {
+    return cachedBrowser;
+  }
+  cachedBrowser = await launchBrowser();
+  return cachedBrowser;
 }
