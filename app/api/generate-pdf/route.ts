@@ -1,6 +1,8 @@
-import puppeteer from "puppeteer"
+import { getBrowser } from "@/lib/browser"
 import { storeRenderData } from "@/lib/report-render-store"
 import type { ReportData, ReportSettings } from "@/types/report-builder"
+
+export const maxDuration = 60
 
 export async function POST(request: Request) {
   let data: ReportData
@@ -20,10 +22,7 @@ export async function POST(request: Request) {
   const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
   const renderUrl = `${protocol}://${host}/report-render?id=${id}`
 
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-  })
+  const browser = await getBrowser()
 
   try {
     const page = await browser.newPage()
@@ -31,10 +30,8 @@ export async function POST(request: Request) {
 
     await page.goto(renderUrl, { waitUntil: "load", timeout: 30_000 })
 
-    // Wait until the React layout effect has computed page breaks
     await page.waitForSelector("[data-layout-complete]", { timeout: 15_000 })
 
-    // One extra animation frame so the final re-render is painted
     await page.evaluate(
       () => new Promise<void>((r) => requestAnimationFrame(() => { r() })),
     )

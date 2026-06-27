@@ -9,7 +9,10 @@
       "Bash(npm install *)",
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\(p.dependencies.puppeteer\\)\")",
       "Bash(npm uninstall *)",
-      "WebFetch(domain:adndiginet.com)"
+      "WebFetch(domain:adndiginet.com)",
+      "PowerShell(New-Item -ItemType Directory -Path \"d:\\\\Adn Project\\\\adn-widgets\\\\public\" -Force)",
+      "PowerShell(Move-Item \"d:\\\\Adn Project\\\\adn-widgets\\\\assets\\\\chromium-v149.0.0-pack.x64.tar\" \"d:\\\\Adn Project\\\\adn-widgets\\\\public\\\\chromium-v149.0.0-pack.x64.tar\")",
+      "PowerShell(\\(Get-Item \"d:\\\\Adn Project\\\\adn-widgets\\\\public\\\\chromium-v149.0.0-pack.x64.tar\"\\).Length / 1MB)"
     ]
   }
 }
