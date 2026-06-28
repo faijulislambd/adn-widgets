@@ -14,6 +14,8 @@ import {
   Users2,
 } from "lucide-react";
 import StatusCard from "@/components/daily-update/StatusCard";
+import { Spinner } from "@/components/ui/spinner";
+import { toast } from "sonner";
 const DailyReportPage = () => {
   const [dailyReportData, setDailyReportData] = useState<{
     success: number;
@@ -90,6 +92,7 @@ const DailyReportPage = () => {
         }),
       }),
     ]);
+    toast.success("Content Copied For Teams");
   };
 
   return (
@@ -125,10 +128,12 @@ const DailyReportPage = () => {
           </div>
         </div>
         {loading ? (
-          <p>Loading...</p>
+          <div className="flex justify-center items-center">
+            <Spinner className="size-8" />
+          </div>
         ) : dailyReportData ? (
-          <div className="grid grid-cols-3 gap-x-4" ref={reportRef}>
-            <div className="col-span-2">
+          <div className="grid grid-cols-5 gap-x-4" ref={reportRef}>
+            <div className="col-span-3">
               <UpdateHeader
                 title="ADN SMS PANEL STATUS"
                 icon={<RefreshCw className="size-4" />}
@@ -137,22 +142,25 @@ const DailyReportPage = () => {
                 <StatusCard
                   title="Success"
                   value={dailyReportData.success}
-                  bgColor="green-200"
-                  textColor="green-600"
+                  bgColor="bg-green-200"
+                  borderColor="border-green-600"
+                  textColor="text-green-600"
                   icon={<Check className="size-6" />}
                 />
                 <StatusCard
                   title="Failed"
                   value={dailyReportData.failed}
-                  bgColor="red-200"
-                  textColor="red-600"
+                  bgColor="bg-red-200"
+                  borderColor="border-red-600"
+                  textColor="text-red-600"
                   icon={<AlertTriangle className="size-6" />}
                 />
                 <StatusCard
                   title="Pending"
                   value={dailyReportData.pending}
-                  bgColor="yellow-200"
-                  textColor="yellow-600"
+                  bgColor="bg-amber-200"
+                  borderColor="border-amber-500"
+                  textColor="text-amber-500"
                   icon={<Clock className="size-6" />}
                 />
               </div>
