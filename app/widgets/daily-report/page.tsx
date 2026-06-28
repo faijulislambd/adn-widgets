@@ -9,6 +9,7 @@ import {
   Check,
   Clock,
   Copy,
+  MessageSquareCode,
   RefreshCw,
   Users,
   Users2,
@@ -46,18 +47,6 @@ const DailyReportPage = () => {
   useEffect(() => {
     fetchDailyReportData();
   }, []);
-
-  const getFormatedReportStyle = (source: Element, target: Element) => {
-    const computedStyle = window.getComputedStyle(source);
-
-    for (const property of computedStyle) {
-      (target as HTMLElement).style.setProperty(
-        property,
-        computedStyle.getPropertyValue(property),
-        computedStyle.getPropertyPriority(property),
-      );
-    }
-  };
 
   const copyFormattedReportToClipboard = async () => {
     if (!reportRef.current) return;
@@ -136,7 +125,7 @@ const DailyReportPage = () => {
             <div className="col-span-3">
               <UpdateHeader
                 title="ADN SMS PANEL STATUS"
-                icon={<RefreshCw className="size-4" />}
+                icon={<MessageSquareCode className="size-4" />}
               />
               <div className="capitalize text-sm grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-2 ">
                 <StatusCard
