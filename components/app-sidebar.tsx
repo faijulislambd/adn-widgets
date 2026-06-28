@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  ChevronRight,
-  Command,
-  LifeBuoy,
-  SquareTerminal,
-  LayoutTemplate,
-} from "lucide-react";
+import { ChevronRight, LifeBuoy } from "lucide-react";
 
 import {
   Collapsible,
@@ -26,23 +20,10 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-// removed unused import
 
 import ADNLogoIcon from "@/assets/adn-diginet-icon.png";
 import Image from "next/image";
-
-const menu = [
-  {
-    title: "Dashboard",
-    icon: SquareTerminal,
-    url: "/",
-  },
-  {
-    title: "Widgets",
-    icon: LayoutTemplate,
-    items: [{ label: "Report Builder", href: "/widgets/report-builder" }],
-  },
-];
+import { navItems } from "@/lib/nav";
 
 export function AppSidebar() {
   return (
@@ -71,7 +52,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {menu.map((item) => {
+            {navItems.map((item) => {
               const hasChildren =
                 Array.isArray(item.items) && item.items.length > 0;
 

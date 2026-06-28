@@ -32,6 +32,7 @@
 
 @layer base {
   :root {
+    --font-sans: var(--font-poppins);
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -63,6 +64,7 @@
   }
 
   .dark {
+    --font-sans: var(--font-poppins);
     --background: 224 24% 8%;
     --foreground: 210 20% 98%;
     --card: 224 24% 10%;
@@ -98,5 +100,6 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-poppins), sans-serif;
   }
 }

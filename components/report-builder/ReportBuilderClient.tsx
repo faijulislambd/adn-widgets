@@ -31,7 +31,7 @@ import { ReportPreview } from "./preview/ReportPreview"
 import { ReportSettingsModal } from "./ReportSettingsModal"
 import { loadReport, saveReport, loadSettings, saveSettings } from "@/lib/report-builder-storage"
 import { COMPANY_NAME, COMPANY_ADDRESS, TIMEZONE, DEFAULT_SETTINGS } from "@/lib/report-builder-config"
-import { downloadReportAsJSON, parseReportJSON, readFileAsText } from "@/lib/report-builder-io"
+import { downloadReportAsJSON, parseReportJSON, readFileAsText, buildReportFilename } from "@/lib/report-builder-io"
 import { downloadReportAsPDF } from "@/lib/report-builder-pdf"
 import type { PlatformType, ReportGroup, ReportData, PredefinedGroupId, ReportSettings } from "@/types/report-builder"
 
@@ -87,14 +87,16 @@ export function ReportBuilderClient() {
   }
 
   function handleDownloadJSON() {
-    downloadReportAsJSON(buildReportData())
+    const data = buildReportData()
+    downloadReportAsJSON(data, buildReportFilename(data, "json"))
   }
 
   async function handleDownloadPDF() {
     if (pdfLoading) return
     setPdfLoading(true)
     try {
-      await downloadReportAsPDF(buildReportData(), settings)
+      const data = buildReportData()
+      await downloadReportAsPDF(data, settings, buildReportFilename(data, "pdf"))
     } finally {
       setPdfLoading(false)
     }
