@@ -6,7 +6,6 @@
   NODE_VERSION = "20"
 
 [functions]
-  timeout = 60
   included_files = ["public/chromium-v149.0.0-pack.x64.tar"]
 
 [functions."___netlify-server-handler"]
