@@ -17,6 +17,7 @@ import {
 import StatusCard from "@/components/daily-update/StatusCard";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
+import TopClientsTable from "@/components/daily-update/TopClientsTable";
 const DailyReportPage = () => {
   const [dailyReportData, setDailyReportData] = useState<{
     success: number;
@@ -121,7 +122,7 @@ const DailyReportPage = () => {
             <Spinner className="size-8" />
           </div>
         ) : dailyReportData ? (
-          <div className="grid grid-cols-5 gap-x-4" ref={reportRef}>
+          <div className="grid grid-cols-5 gap-x-8" ref={reportRef}>
             <div className="col-span-3">
               <UpdateHeader
                 title="ADN SMS PANEL STATUS"
@@ -155,16 +156,12 @@ const DailyReportPage = () => {
               </div>
             </div>
 
-            <div>
+            <div className="col-span-2">
               <UpdateHeader
                 title="TOP 3 CLIENTS"
                 icon={<Users2 className="size-4" />}
               />
-              <ul className="capitalize text-sm list-disc list-inside">
-                {dailyReportData.topThreeClients.map((client, index) => (
-                  <li key={index}>{client.clientName}</li>
-                ))}
-              </ul>
+              <TopClientsTable clients={dailyReportData?.topThreeClients} />
             </div>
           </div>
         ) : (
