@@ -13,9 +13,8 @@ import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
-  title: "Next shadcn Redux Starter",
-  description:
-    "Next.js boilerplate with shadcn UI, Redux, themes, and sidebar.",
+  title: "ADN DigiNet Widgets",
+  description: "This is for the use of certain projects",
 };
 
 export default function RootLayout({
