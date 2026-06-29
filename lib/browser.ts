@@ -49,10 +49,14 @@ async function launchBrowser(): Promise<Browser> {
 
   const chromium = await import("@sparticuz/chromium-min");
 
+  // On Netlify, always use the remote URL so concurrent invocations don't
+  // hit ETXTBSY from two processes extracting the same tar to /tmp at once.
   const localTar = join(process.cwd(), "public", "chromium-v149.0.0-pack.x64.tar");
-  const chromiumSource = existsSync(localTar)
-    ? localTar
-    : `${process.env.URL || process.env.DEPLOY_URL}/chromium-v149.0.0-pack.x64.tar`;
+  const onNetlify = !!(process.env.NETLIFY || process.env.URL);
+  const chromiumSource =
+    !onNetlify && existsSync(localTar)
+      ? localTar
+      : `${process.env.URL || process.env.DEPLOY_URL}/chromium-v149.0.0-pack.x64.tar`;
 
   return puppeteer.launch({
     args: chromium.default.args,
@@ -63,24 +67,32 @@ async function launchBrowser(): Promise<Browser> {
 }
 
 let cachedBrowser: Browser | null = null;
+let launchPromise: Promise<Browser> | null = null;
 
 export async function getBrowser(): Promise<Browser> {
   if (cachedBrowser?.connected) {
     return cachedBrowser;
   }
 
-  // Clean up dead browser
+  // Serialize concurrent launch calls so only one extraction runs at a time.
+  if (launchPromise) {
+    return launchPromise;
+  }
+
   if (cachedBrowser) {
     try { await cachedBrowser.close(); } catch {}
     cachedBrowser = null;
   }
 
-  cachedBrowser = await launchBrowser();
-
-  // Clear cache if browser disconnects unexpectedly
-  cachedBrowser.once("disconnected", () => {
-    cachedBrowser = null;
+  launchPromise = launchBrowser().then((browser) => {
+    cachedBrowser = browser;
+    launchPromise = null;
+    browser.once("disconnected", () => { cachedBrowser = null; });
+    return browser;
+  }).catch((err) => {
+    launchPromise = null;
+    throw err;
   });
 
-  return cachedBrowser;
+  return launchPromise;
 }
