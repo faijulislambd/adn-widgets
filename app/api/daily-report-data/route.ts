@@ -48,15 +48,13 @@ export async function GET() {
         ?.textContent?.trim(),
       topThreeClients: Array.from(
         document.querySelectorAll("#topClientTbody tr"),
-      )
-        .slice(0, 3)
-        .map((row) => {
-          const cells = row.querySelectorAll("td");
-          return {
-            clientName: cells[0]?.textContent?.trim() || "",
-            totalSMS: cells[1]?.textContent?.trim() || "",
-          };
-        }),
+      ).map((row) => {
+        const cells = row.querySelectorAll("td");
+        return {
+          clientName: cells[0]?.textContent?.trim() || "",
+          totalSMS: cells[1]?.textContent?.trim() || "",
+        };
+      }),
     }));
 
     return Response.json({ success: true, smsData });

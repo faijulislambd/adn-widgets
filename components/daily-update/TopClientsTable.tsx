@@ -20,7 +20,7 @@ const TopClientsTable = ({
             <TableHead className="border-r font-semibold">
               Client Name
             </TableHead>
-            <TableHead className="font-semibold">Total SMS</TableHead>
+            <TableHead className="font-semibold w-28">Total SMS</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
