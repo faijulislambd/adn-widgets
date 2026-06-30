@@ -49,6 +49,11 @@ const DailyReportPage = () => {
     fetchDailyReportData();
   }, []);
 
+  // let clientsData = [];
+  // if (dailyReportData) {
+  //   clientsData =
+  // }
+
   const copyFormattedReportToClipboard = async () => {
     if (!reportRef.current) return;
     const html = `
@@ -158,7 +163,7 @@ const DailyReportPage = () => {
 
             <div className="col-span-2">
               <UpdateHeader
-                title="TOP 3 CLIENTS"
+                title="TOP 10 CLIENTS"
                 icon={<Users2 className="size-4" />}
               />
               <TopClientsTable clients={dailyReportData?.topThreeClients} />
