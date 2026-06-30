@@ -20,31 +20,61 @@ export async function GET() {
   }
 
   let page;
+  let step = "init";
   try {
+    step = "getBrowser";
     const browser = await getBrowser();
     page = await browser.newPage();
 
+    step = "goto";
     await page.goto(url, { waitUntil: "networkidle2" });
 
-    // Login form may not appear if the browser session is still active
+    step = "login-check";
     const emailField = await page.$("[type='email']");
     console.log("Email field found:", !!emailField);
     if (emailField) {
+      step = "login";
       await page.type("[type='email']", email);
       await page.waitForSelector("[type='password']");
       await page.type("[type='password']", password);
       await page.waitForSelector(".btn");
-      await page.click(".btn");
-
       await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle2" }),
+        page.click(".btn"),
       ]);
     }
 
+    step = "select-period";
+    await page.waitForSelector("#period");
     await page.select("#period", "custom");
-    await page.waitForSelector("#date-range");
-    await page.type("#start_date", moment().format("YYYY-MM-DD"));
-    await page.type("#end_date", moment().format("YYYY-MM-DD"));
+
+    step = "wait-dates";
+    await page.waitForSelector("#start_date");
+    await page.waitForSelector("#end_date");
+
+    const startDate = moment().format("YYYY-MM-DD");
+    const endDate = moment().format("YYYY-MM-DD");
+
+    await page.$eval(
+      "#start_date",
+      (el, value) => {
+        (el as HTMLInputElement).value = value;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      },
+      startDate,
+    );
+
+    await page.$eval(
+      "#end_date",
+      (el, value) => {
+        (el as HTMLInputElement).value = value;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      },
+      endDate,
+    );
+
     await page.waitForSelector("#searchCampaign");
     await page.click("#searchCampaign");
 
@@ -58,22 +88,23 @@ export async function GET() {
       },
     );
 
-    const metlifeData = await page.evaluate(() => ({
-      maskConsumption: document
-        .querySelector("#maskconid")
-        ?.textContent?.trim(),
-      nonMaskConsumption: document
-        .querySelector("#non-maskconid")
-        ?.textContent?.trim(),
-      internationalConsumption: document
-        .querySelector("#int-conid")
-        ?.textContent?.trim(),
-    }));
+    const metlifeData = await page.evaluate(() => {
+      const parseCount = (selector: string) => {
+        const text =
+          document.querySelector(selector)?.textContent?.trim() ?? "0";
+        return parseInt(text.replace(/[^0-9]/g, ""), 10) || 0;
+      };
+      return {
+        maskConsumption: parseCount("#maskconid"),
+        nonMaskConsumption: parseCount("#non-maskconid"),
+        internationalConsumption: parseCount("#int-conid"),
+      };
+    });
 
     return Response.json({ success: true, metlifeData });
   } catch (error) {
-    console.error("Error occurred:", error);
-    return Response.json({ error: String(error) }, { status: 500 });
+    console.error(`Error at step [${step}]:`, error);
+    return Response.json({ error: String(error), step }, { status: 500 });
   } finally {
     await page?.close();
   }

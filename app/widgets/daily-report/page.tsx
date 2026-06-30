@@ -21,6 +21,7 @@ import StatusCard from "@/components/daily-update/StatusCard";
 import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import TopClientsTable from "@/components/daily-update/TopClientsTable";
+import { groupCompanies } from "@/lib/group-companies";
 const DailyReportPage = () => {
   const [dailyReportData, setDailyReportData] = useState<{
     success: number;
@@ -73,6 +74,8 @@ const DailyReportPage = () => {
     fetchDailyMetlifeReportData();
   }, []);
 
+  const topClients = groupCompanies(dailyReportData?.topThreeClients ?? []);
+
   const sumOfMetlifeValues = (mask: number, nonMask: number, int: number) => {
     return Number(mask) + Number(nonMask) + Number(int);
   };
@@ -98,10 +101,11 @@ const DailyReportPage = () => {
 
 <br>
 
-    ${dailyReportData?.topThreeClients
-      .map((c) => `<div>${c.clientName}</div>`)
+    ${topClients
+      .slice(0, 3)
+      .map((c) => `<div>${c.company}</div>`)
       .join("")}
-
+<br>
          <div style="font-weight:700;">-> MetLife Bangladesh ${moment().format("DD-MMMM-YYYY")}
     </div>
 
@@ -145,7 +149,9 @@ const DailyReportPage = () => {
               className="gap-1.5"
               onClick={() => handleRefresh()}
             >
-              <RefreshCw className="size-3.5" />
+              <RefreshCw
+                className={`size-3.5 ${loading ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
             <Button
@@ -164,7 +170,7 @@ const DailyReportPage = () => {
             <Spinner className="size-8" />
           </div>
         ) : dailyReportData && metlifeReport ? (
-          <div className="grid grid-cols-5 gap-x-8" ref={reportRef}>
+          <div className="grid grid-cols-5 gap-x-6" ref={reportRef}>
             <div className="col-span-3">
               <div className="mb-9">
                 <UpdateHeader
@@ -234,10 +240,10 @@ const DailyReportPage = () => {
 
             <div className="col-span-2">
               <UpdateHeader
-                title="TOP 10 CLIENTS"
+                title={`TOP CLIENTS`}
                 icon={<Users2 className="size-4" />}
               />
-              <TopClientsTable clients={dailyReportData?.topThreeClients} />
+              <TopClientsTable clients={topClients} />
             </div>
           </div>
         ) : (
