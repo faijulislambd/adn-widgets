@@ -45,7 +45,7 @@ export const groupCompanies = (data: Input[]) => {
 
   for (const item of data) {
     const { company, user } = parseClient(item.clientName);
-    const sms = Number(item.totalSMS.replace(/,/g, ""));
+    const sms = Number(item.totalSMS);
 
     if (!companyMap.has(company)) {
       companyMap.set(company, {
