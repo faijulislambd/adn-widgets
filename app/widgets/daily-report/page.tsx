@@ -38,40 +38,30 @@ const DailyReportPage = () => {
 
   const reportRef = useRef<HTMLDivElement>(null);
 
-  const fetchDailyReportData = async () => {
+  const fetchAllReportData = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/daily-report-data");
-      if (!response.ok) {
-        throw new Error("Failed to fetch daily report data");
-      }
-      const data = await response.json();
-      setDailyReportData(data.smsData);
+      const [smsResponse, metlifeResponse] = await Promise.all([
+        fetch("/api/daily-report-data"),
+        fetch("/api/metlife-report"),
+      ]);
+      if (!smsResponse.ok) throw new Error("Failed to fetch daily report data");
+      if (!metlifeResponse.ok) throw new Error("Failed to fetch metlife report data");
+      const [smsJson, metlifeJson] = await Promise.all([
+        smsResponse.json(),
+        metlifeResponse.json(),
+      ]);
+      setDailyReportData(smsJson.smsData);
+      setMetlifeReport(metlifeJson.metlifeData);
     } catch (error) {
-      console.error("Error fetching daily report data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const fetchDailyMetlifeReportData = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/api/metlife-report");
-      if (!response.ok) {
-        throw new Error("Failed to fetch daily report data");
-      }
-      const data = await response.json();
-      setMetlifeReport(data.metlifeData);
-    } catch (error) {
-      console.error("Error fetching daily report data:", error);
+      console.error("Error fetching report data:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDailyReportData();
-    fetchDailyMetlifeReportData();
+    fetchAllReportData();
   }, []);
 
   const topClients = groupCompanies(dailyReportData?.topThreeClients ?? []);
@@ -135,8 +125,7 @@ const DailyReportPage = () => {
   };
 
   const handleRefresh = () => {
-    fetchDailyReportData();
-    fetchDailyMetlifeReportData();
+    fetchAllReportData();
   };
 
   return (
