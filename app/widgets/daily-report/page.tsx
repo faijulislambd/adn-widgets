@@ -112,6 +112,14 @@ const DailyReportPage = () => {
 <br>
 
   <div>Volume: ${sumOfMetlifeValues(metlifeReport.maskConsumption, metlifeReport.nonMaskConsumption, metlifeReport.internationalConsumption)}</div>
+
+  <br>
+         <div style="font-weight:700;">-> One Bank PLC ${moment().format("DD-MMMM-YYYY")}
+    </div>
+
+<br>
+
+  <div>Volume: 0</div>
 </div>
 `;
       await navigator.clipboard.write([
