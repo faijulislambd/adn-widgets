@@ -42,9 +42,7 @@ export async function GET() {
     }
 
     await page.select("#period", "custom");
-    await page.waitForSelector("#date-start_date");
-    const dateField = await page.$("#date-start_date");
-    console.log(dateField);
+    await page.waitForSelector("#date-range");
     await page.type("#start_date", moment().format("YYYY-MM-DD"));
     await page.type("#end_date", moment().format("YYYY-MM-DD"));
     await page.waitForSelector("#searchCampaign");
@@ -52,7 +50,7 @@ export async function GET() {
 
     await page.waitForFunction(
       () => {
-        const loader = document.querySelector(".loader");
+        const loader = document.querySelector(".loaderbox");
         return loader?.classList.contains("hide");
       },
       {
@@ -64,7 +62,7 @@ export async function GET() {
       maskConsumption: document
         .querySelector("#maskconid")
         ?.textContent?.trim(),
-      nomMaskConsumption: document
+      nonMaskConsumption: document
         .querySelector("#non-maskconid")
         ?.textContent?.trim(),
       internationalConsumption: document

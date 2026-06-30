@@ -9,8 +9,11 @@ import {
   Check,
   Clock,
   Copy,
+  Globe2,
+  Lock,
   MessageSquareCode,
   RefreshCw,
+  Unlock,
   Users,
   Users2,
 } from "lucide-react";
@@ -24,6 +27,11 @@ const DailyReportPage = () => {
     failed: number;
     pending: number;
     topThreeClients: { clientName: string; totalSMS: number }[];
+  } | null>(null);
+  const [metlifeReport, setMetlifeReport] = useState<{
+    maskConsumption: number;
+    nonMaskConsumption: number;
+    internationalConsumption: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,28 +52,44 @@ const DailyReportPage = () => {
       setLoading(false);
     }
   };
+  const fetchDailyMetlifeReportData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("/api/metlife-report");
+      if (!response.ok) {
+        throw new Error("Failed to fetch daily report data");
+      }
+      const data = await response.json();
+      setMetlifeReport(data.metlifeData);
+    } catch (error) {
+      console.error("Error fetching daily report data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchDailyReportData();
+    fetchDailyMetlifeReportData();
   }, []);
 
-  // let clientsData = [];
-  // if (dailyReportData) {
-  //   clientsData =
-  // }
+  const sumOfMetlifeValues = (mask: number, nonMask: number, int: number) => {
+    return Number(mask) + Number(nonMask) + Number(int);
+  };
 
   const copyFormattedReportToClipboard = async () => {
     if (!reportRef.current) return;
-    const html = `
+    if (dailyReportData && metlifeReport) {
+      const html = `
 <div style="font-family: Segoe UI, Arial, sans-serif; font-size:14px;">
     <div style="font-weight:700;">-> ADN SMS PANEL STATUS ${moment().format("DD-MMMM-YYYY")}
     </div>
 
 <br>
 
-    <div>SUCCESS: ${dailyReportData?.success}</div>
-    <div>FAILED: ${dailyReportData?.failed}</div>
-    <div>PENDING: ${dailyReportData?.pending}</div>
+    <div>SUCCESS: ${dailyReportData.success}</div>
+    <div>FAILED: ${dailyReportData.failed}</div>
+    <div>PENDING: ${dailyReportData.pending}</div>
 
     <br>
 
@@ -77,17 +101,30 @@ const DailyReportPage = () => {
     ${dailyReportData?.topThreeClients
       .map((c) => `<div>${c.clientName}</div>`)
       .join("")}
+
+         <div style="font-weight:700;">-> MetLife Bangladesh ${moment().format("DD-MMMM-YYYY")}
+    </div>
+
+<br>
+
+  <div>Volume: ${sumOfMetlifeValues(metlifeReport.maskConsumption, metlifeReport.nonMaskConsumption, metlifeReport.internationalConsumption)}</div>
 </div>
 `;
-    await navigator.clipboard.write([
-      new ClipboardItem({
-        "text/html": new Blob([html], { type: "text/html" }),
-        "text/plain": new Blob([reportRef.current.innerText], {
-          type: "text/plain",
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": new Blob([html], { type: "text/html" }),
+          "text/plain": new Blob([reportRef.current.innerText], {
+            type: "text/plain",
+          }),
         }),
-      }),
-    ]);
-    toast.success("Content Copied For Teams");
+      ]);
+      toast.success("Content Copied For Teams");
+    }
+  };
+
+  const handleRefresh = () => {
+    fetchDailyReportData();
+    fetchDailyMetlifeReportData();
   };
 
   return (
@@ -106,7 +143,7 @@ const DailyReportPage = () => {
               variant="outline"
               size="sm"
               className="gap-1.5"
-              onClick={() => fetchDailyReportData()}
+              onClick={() => handleRefresh()}
             >
               <RefreshCw className="size-3.5" />
               Refresh
@@ -126,38 +163,72 @@ const DailyReportPage = () => {
           <div className="flex justify-center items-center">
             <Spinner className="size-8" />
           </div>
-        ) : dailyReportData ? (
+        ) : dailyReportData && metlifeReport ? (
           <div className="grid grid-cols-5 gap-x-8" ref={reportRef}>
             <div className="col-span-3">
-              <UpdateHeader
-                title="ADN SMS PANEL STATUS"
-                icon={<MessageSquareCode className="size-4" />}
-              />
-              <div className="capitalize text-sm grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-2 ">
-                <StatusCard
-                  title="Success"
-                  value={dailyReportData.success}
-                  bgColor="bg-green-200"
-                  borderColor="border-green-600"
-                  textColor="text-green-600"
-                  icon={<Check className="size-6" />}
+              <div className="mb-9">
+                <UpdateHeader
+                  title="ADN SMS PANEL STATUS"
+                  icon={<MessageSquareCode className="size-4" />}
                 />
-                <StatusCard
-                  title="Failed"
-                  value={dailyReportData.failed}
-                  bgColor="bg-red-200"
-                  borderColor="border-red-600"
-                  textColor="text-red-600"
-                  icon={<AlertTriangle className="size-6" />}
+                <div className="capitalize text-sm grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-2 ">
+                  <StatusCard
+                    title="Success"
+                    value={dailyReportData?.success}
+                    bgColor="bg-green-200"
+                    borderColor="border-green-600"
+                    textColor="text-green-600"
+                    icon={<Check className="size-6" />}
+                  />
+                  <StatusCard
+                    title="Failed"
+                    value={dailyReportData?.failed}
+                    bgColor="bg-red-200"
+                    borderColor="border-red-600"
+                    textColor="text-red-600"
+                    icon={<AlertTriangle className="size-6" />}
+                  />
+                  <StatusCard
+                    title="Pending"
+                    value={dailyReportData?.pending}
+                    bgColor="bg-amber-200"
+                    borderColor="border-amber-500"
+                    textColor="text-amber-500"
+                    icon={<Clock className="size-6" />}
+                  />
+                </div>
+              </div>
+              <div>
+                <UpdateHeader
+                  title="METLIFE CONSUMPTION STATUS"
+                  icon={<MessageSquareCode className="size-4" />}
                 />
-                <StatusCard
-                  title="Pending"
-                  value={dailyReportData.pending}
-                  bgColor="bg-amber-200"
-                  borderColor="border-amber-500"
-                  textColor="text-amber-500"
-                  icon={<Clock className="size-6" />}
-                />
+                <div className="capitalize text-sm grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-2 ">
+                  <StatusCard
+                    title="Mask"
+                    value={metlifeReport.maskConsumption}
+                    bgColor="bg-green-200"
+                    borderColor="border-green-600"
+                    textColor="text-green-600"
+                    icon={<Lock className="size-6" />}
+                  />
+                  <StatusCard
+                    title="Nonmask"
+                    value={metlifeReport.nonMaskConsumption}
+                    bgColor="bg-amber-200"
+                    borderColor="border-amber-500"
+                    textColor="text-amber-500"
+                    icon={<Unlock className="size-6" />}
+                  />
+                  <StatusCard
+                    title="International"
+                    value={metlifeReport.internationalConsumption}
+                    bgColor="bg-blue-200"
+                    borderColor="border-blue-500"
+                    textColor="text-blue-500"
+                    icon={<Globe2 className="size-6" />}
+                  />
+                </div>
               </div>
             </div>
 
