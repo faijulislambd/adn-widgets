@@ -13,13 +13,13 @@ const TopClientsTable = ({
   clients: { company: string; users: string[]; totalSMS: string | number }[];
 }) => {
   return (
-    <div className="border rounded-lg">
+    <div className="border rounded-lg overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="border-r font-semibold">Company</TableHead>
             <TableHead className="border-r font-semibold">Clients</TableHead>
-            <TableHead className="font-semibold w-28">Total SMS</TableHead>
+            <TableHead className="font-semibold w-28 ">Total SMS</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

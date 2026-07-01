@@ -46,7 +46,8 @@ const DailyReportPage = () => {
         fetch("/api/metlife-report"),
       ]);
       if (!smsResponse.ok) throw new Error("Failed to fetch daily report data");
-      if (!metlifeResponse.ok) throw new Error("Failed to fetch metlife report data");
+      if (!metlifeResponse.ok)
+        throw new Error("Failed to fetch metlife report data");
       const [smsJson, metlifeJson] = await Promise.all([
         smsResponse.json(),
         metlifeResponse.json(),
@@ -134,12 +135,12 @@ const DailyReportPage = () => {
       <p className="text-sm text-muted-foreground mt-0.5">
         Get the daily ADN DigiNet SMS platform updates.
       </p>
-      <div className="mt-4 border rounded-xl p-6">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="font-semibold uppercase text-lg">
+      <div className="mt-4 border rounded-xl p-4 sm:p-6">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <h1 className="font-semibold uppercase text-base sm:text-lg">
             Report of the day: {moment().format("DD-MMMM-YYYY")}
           </h1>
-          <div className="flex gap-x-2">
+          <div className="flex gap-x-2 shrink-0">
             <Button
               variant="outline"
               size="sm"
@@ -167,8 +168,11 @@ const DailyReportPage = () => {
             <Spinner className="size-8" />
           </div>
         ) : dailyReportData && metlifeReport ? (
-          <div className="grid grid-cols-5 gap-x-6" ref={reportRef}>
-            <div className="col-span-3">
+          <div
+            className="grid grid-cols-1 lg:grid-cols-5 gap-6"
+            ref={reportRef}
+          >
+            <div className="col-span-1 lg:col-span-3">
               <div className="mb-9">
                 <UpdateHeader
                   title="ADN SMS PANEL STATUS"
@@ -235,9 +239,9 @@ const DailyReportPage = () => {
               </div>
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-1 lg:col-span-2">
               <UpdateHeader
-                title={`TOP CLIENTS`}
+                title={`TOP CLIENTS (${topClients.length})`}
                 icon={<Users2 className="size-4" />}
               />
               <TopClientsTable clients={topClients} />
