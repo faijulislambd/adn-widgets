@@ -1,8 +1,11 @@
 "use client";
 
+import StatusCard from "@/components/daily-update/StatusCard";
 import UpdateHeader from "@/components/daily-update/UpdateHeader";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquareDashedIcon } from "lucide-react";
+import { RiEnglishInput } from "react-icons/ri";
+import { TbAlphabetBangla } from "react-icons/tb";
 import { useState } from "react";
 
 const CharacterCount = () => {
@@ -74,7 +77,40 @@ const CharacterCount = () => {
           title="Message Body Count"
           icon={<MessageSquareDashedIcon className="size-4" />}
         />
-        <div className="mb-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatusCard
+            title="Characters for 1 SMS (English)"
+            value={engSingleSmsCount}
+            bgColor="bg-green-200"
+            borderColor="border-green-600"
+            textColor="text-green-600"
+            icon={<RiEnglishInput className="size-6" />}
+          />
+          <StatusCard
+            title="Characters for 1 SMS (Bangla)"
+            value={banglaSingleSmsCount}
+            bgColor="bg-blue-200"
+            borderColor="border-blue-600"
+            textColor="text-blue-600"
+            icon={<TbAlphabetBangla className="size-6" />}
+          />
+          <StatusCard
+            title="Characters for multiple SMS (English)"
+            value={engMultiSmsCount}
+            bgColor="bg-green-200"
+            borderColor="border-green-600"
+            textColor="text-green-600"
+            icon={<RiEnglishInput className="size-6" />}
+          />
+          <StatusCard
+            title="Characters for multiple SMS (Bangla)"
+            value={banglaMultiSmsCount}
+            bgColor="bg-blue-200"
+            borderColor="border-blue-600"
+            textColor="text-blue-600"
+            icon={<TbAlphabetBangla className="size-6" />}
+          />
+        </div>
 
         <Textarea
           placeholder="Type your message here..."

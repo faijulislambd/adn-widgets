@@ -13,6 +13,7 @@ export const navItems: NavItem[] = [
     title: "Widgets",
     icon: LayoutTemplate,
     items: [
+      { label: "SMS Word Count", href: "/widgets/sms-word-count" },
       { label: "Report Builder", href: "/widgets/report-builder" },
       { label: "Daily Report", href: "/widgets/daily-report" },
       // { label: "Monthly Report", href: "/widgets/monthly-report" },

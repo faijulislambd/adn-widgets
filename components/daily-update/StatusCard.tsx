@@ -17,7 +17,9 @@ const StatusCard = ({
     <div
       className={`flex flex-col items-center gap-y-2 justify-center w-full px-4 py-6 ${bgColor} rounded-lg shadow-md`}
     >
-      <span className={`text-lg font-semibold uppercase ${textColor}`}>
+      <span
+        className={`text-sm font-semibold uppercase text-center ${textColor}`}
+      >
         {title}
       </span>
       <div

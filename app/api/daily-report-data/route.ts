@@ -38,24 +38,38 @@ export async function GET() {
       ]);
     }
 
-    const smsData = await page.evaluate(() => ({
-      success: document
-        .querySelector("#success_total_sms")
-        ?.textContent?.trim(),
-      failed: document.querySelector("#failed_total_sms")?.textContent?.trim(),
-      pending: document
-        .querySelector("#pending_total_sms")
-        ?.textContent?.trim(),
-      topThreeClients: Array.from(
-        document.querySelectorAll("#topClientTbody tr"),
-      ).map((row) => {
-        const cells = row.querySelectorAll("td");
-        return {
-          clientName: cells[0]?.textContent?.trim() || "",
-          totalSMS: cells[1]?.textContent?.trim() || "",
-        };
-      }),
-    }));
+    // Wait until the dashboard AJAX populates the success count (non-empty, non-zero)
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector("#success_total_sms");
+        const text = el?.textContent?.trim();
+        return text !== undefined && text !== "" && text !== "0";
+      },
+      { timeout: 30000 },
+    );
+
+    const smsData = await page.evaluate(() => {
+      const parseCount = (selector: string) => {
+        const text =
+          document.querySelector(selector)?.textContent?.trim() ?? "0";
+        return parseInt(text.replace(/[^0-9]/g, ""), 10) || 0;
+      };
+      return {
+        success: parseCount("#success_total_sms"),
+        failed: parseCount("#failed_total_sms"),
+        pending: parseCount("#pending_total_sms"),
+        topThreeClients: Array.from(
+          document.querySelectorAll("#topClientTbody tr"),
+        ).map((row) => {
+          const cells = row.querySelectorAll("td");
+          const smsText = cells[1]?.textContent?.trim() ?? "0";
+          return {
+            clientName: cells[0]?.textContent?.trim() || "",
+            totalSMS: parseInt(smsText.replace(/[^0-9]/g, ""), 10) || 0,
+          };
+        }),
+      };
+    });
 
     return Response.json({ success: true, smsData });
   } catch (error) {
