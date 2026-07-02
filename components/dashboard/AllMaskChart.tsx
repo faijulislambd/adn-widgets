@@ -7,18 +7,24 @@ import { Pie } from "react-chartjs-2";
 ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
 
 type pieData = {
-  success: number;
-  failed: number;
-  pending: number;
+  mask_success: number;
+  mask_failed: number;
+  mask_pending: number;
+  nonmask_success: number;
+  nonmask_failed: number;
+  nonmask_pending: number;
 };
 
 const COLORS: Record<string, string> = {
-  Success: "#4ade80",
-  Failed: "#fecaca",
-  Pending: "#fde68a",
+  "Mask Success": "#4ade80",
+  "Non-Mask Success": "#3b82f6",
+  "Mask Failed": "#fecaca",
+  "Non-Mask Failed": "#fecaca",
+  "Mask Pending": "#fde68a",
+  "Non-Mask Pending": "#fde68a",
 };
 
-const SFPChart = ({
+const AllMaskChart = ({
   chartData,
   label,
 }: {
@@ -26,9 +32,12 @@ const SFPChart = ({
   label: string;
 }) => {
   const rawData = [
-    { name: "Success", value: chartData.success },
-    { name: "Failed", value: chartData.failed },
-    { name: "Pending", value: chartData.pending },
+    { name: "Mask Success", value: chartData.mask_success },
+    { name: "Non-Mask Success", value: chartData.nonmask_success },
+    { name: "Mask Failed", value: chartData.mask_failed },
+    { name: "Non-Mask Failed", value: chartData.nonmask_failed },
+    { name: "Mask Pending", value: chartData.mask_pending },
+    { name: "Non-Mask Pending", value: chartData.nonmask_pending },
   ].filter((d) => d.value > 0);
 
   const total = rawData.reduce((sum, d) => sum + d.value, 0);
@@ -91,4 +100,4 @@ const SFPChart = ({
   );
 };
 
-export default SFPChart;
+export default AllMaskChart;

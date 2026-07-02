@@ -1,0 +1,1458 @@
+╭─── Claude Code v2.1.183 ─────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│              Welcome back DevTechOps!              │ started                 │
+│                                                    │ Run /init to create a … │
+│                       ▐▛███▜▌                      │ ─────────────────────── │
+│                      ▝▜█████▛▘                     │ What's new              │
+│                        ▘▘ ▝▝                       │ Improved auto mode saf… │
+│                                                    │ Added a warning when t… │
+│   Sonnet 4.6 · Claude Team · ADN DigiNet Limited   │ Added `attribution.ses… │
+│             D:\Adn Project\adn-widgets             │ /release-notes for more │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+ ▎ Meet Fable 5, our newest model for complex, long-running work. Switch anytime with /model.
+ ▎ Included in your plan limits until Jul 8, then switch to usage credits to continue.
+
+❯ acha ekhane recharts bad pora puri r charts js use koro latest ta             
+
+● প্রথমে প্রজেক্টের বর্তমান স্ট্রাকচার দেখছি।
+
+  Searched for 1 pattern, read 4 files (ctrl+o to expand)
+
+● এখন recharts ব্যবহার হওয়া কম্পোনেন্টগুলো দেখছি।
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● এখন dashboard কম্পোনেন্টগুলো দেখছি।
+
+  Searched for 3 patterns, read 2 files (ctrl+o to expand)
+
+● ঠিক আছে। SFPChart.tsx এবং chart.tsx দুটোতেই recharts ব্যবহার আছে। এখন Chart.js ইন্সটল করে
+  সব replace করব।
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Chart.js ইন্সটল হয়ে গেছে। এখন SFPChart.tsx রিরাইট করছি।
+
+● Write(components\dashboard\SFPChart.tsx)
+  ⎿  Added 45 lines, removed 44 lines
+       1 -import {                                                       
+       2 -  Cell,                                                        
+       3 -  Legend,                                                      
+       4 -  Pie,                                                         
+       5 -  PieChart,                                                    
+       6 -  ResponsiveContainer,                                         
+       7 -  Tooltip,                                                     
+       8 -  TooltipProps,                                                
+       9 -} from "recharts";                                             
+       1 +"use client";                                                  
+       2  
+       3 +import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "
+         +chart.js";                                                     
+       4 +import { Pie } from "react-chartjs-2";                         
+       5 +                                                               
+       6 +ChartJS.register(ArcElement, Tooltip, Legend);                 
+       7 +                                                               
+       8  type pieData = {
+       9    success: number;
+      10    failed: number;
+     ...
+      17    Pending: "#fde68a",
+      18  };
+      19  
+      23 -const CustomTooltip = ({ active, payload }: TooltipProps<number
+         -, string>) => {                                                
+      24 -  if (!active || !payload?.length) return null;                
+      25 -  const { name, value } = payload[0];                          
+      26 -  return (                                                     
+      27 -    <div className="rounded bg-white px-3 py-1.5 shadow text-sm
+         - font-medium">                                                 
+      28 -      {name}: {value?.toLocaleString()}                        
+      29 -    </div>                                                     
+      30 -  );                                                           
+      31 -};                                                             
+      32 -                                                               
+      20  const SFPChart = ({
+      21    chartData,
+      22    label,
+     ...
+      24    chartData: pieData;
+      25    label: string;
+      26  }) => {
+      40 -  const data = [                                               
+      27 +  const rawData = [                                            
+      28      { name: "Success", value: chartData.success },
+      29      { name: "Failed", value: chartData.failed },
+      30      { name: "Pending", value: chartData.pending },
+      31    ].filter((d) => d.value > 0);
+      32  
+      33 +  const data = {                                               
+      34 +    labels: rawData.map((d) => d.name),                        
+      35 +    datasets: [                                                
+      36 +      {                                                        
+      37 +        data: rawData.map((d) => d.value),                     
+      38 +        backgroundColor: rawData.map((d) => COLORS[d.name]),   
+      39 +        borderWidth: 0,                                        
+      40 +      },                                                       
+      41 +    ],                                                         
+      42 +  };                                                           
+      43 +                                                               
+      44 +  const options = {                                            
+      45 +    responsive: true,                                          
+      46 +    maintainAspectRatio: true,                                 
+      47 +    plugins: {                                                 
+      48 +      legend: {                                                
+      49 +        position: "bottom" as const,                           
+      50 +        labels: {                                              
+      51 +          font: { size: 11 },                                  
+      52 +          padding: 12,                                         
+      53 +          boxWidth: 12,                                        
+      54 +        },                                                     
+      55 +      },                                                       
+      56 +      tooltip: {                                               
+      57 +        callbacks: {                                           
+      58 +          label: (ctx: { label: string; parsed: number }) =>   
+      59 +            ` ${ctx.label}: ${ctx.parsed.toLocaleString()}`,   
+      60 +        },                                                     
+      61 +      },                                                       
+      62 +    },                                                         
+      63 +  };                                                           
+      64 +                                                               
+      65    return (
+      66      <div className="flex flex-col items-center gap-1 w-full">
+      48 -      <p className="text-xs font-semibold capitalize text-muted
+         --foreground">                                                  
+      49 -        {label}                                                
+      50 -      </p>                                                     
+      67 +      {label && (                                              
+      68 +        <p className="text-xs font-semibold capitalize text-mut
+         +ed-foreground">                                                
+      69 +          {label}                                              
+      70 +        </p>                                                   
+      71 +      )}                                                       
+      72        <div className="w-full aspect-square">
+      52 -        <ResponsiveContainer width="100%" height="100%">       
+      53 -          <PieChart margin={{ top: 4, right: 4, bottom: 4, left
+         -: 4 }}>                                                        
+      54 -            <Pie                                               
+      55 -              data={data}                                      
+      56 -              dataKey="value"                                  
+      57 -              nameKey="name"                                   
+      58 -              outerRadius="90%"                                
+      59 -              label={false}                                    
+      60 -            >                                                  
+      61 -              {data.map((entry) => (                           
+      62 -                <Cell key={entry.name} fill={COLORS[entry.name]
+         -} />                                                           
+      63 -              ))}                                              
+      64 -            </Pie>                                             
+      65 -            <Tooltip content={<CustomTooltip />} />            
+      66 -            <Legend                                            
+      67 -              verticalAlign="bottom"                           
+      68 -              align="center"                                   
+      69 -              className="uppercase"                            
+      70 -            />                                                 
+      71 -          </PieChart>                                          
+      72 -        </ResponsiveContainer>                                 
+      73 +        <Pie data={data} options={options} />                  
+      74        </div>
+      75      </div>
+      76    );
+
+● এখন chart.tsx রিরাইট করছি — recharts সরিয়ে Chart.js দিয়ে।
+
+● Write(components\ui\chart.tsx)
+  ⎿  Added 50 lines, removed 340 lines
+        1 -"use client"                                                  
+        1 +"use client";                                                 
+        2  
+        3 -import * as React from "react"                                
+        4 -import * as RechartsPrimitive from "recharts"                 
+        3 +import * as React from "react";                               
+        4 +import {                                                      
+        5 +  Chart as ChartJS,                                           
+        6 +  CategoryScale,                                              
+        7 +  LinearScale,                                                
+        8 +  BarElement,                                                 
+        9 +  LineElement,                                                
+       10 +  PointElement,                                               
+       11 +  ArcElement,                                                 
+       12 +  Title,                                                      
+       13 +  Tooltip,                                                    
+       14 +  Legend,                                                     
+       15 +  Filler,                                                     
+       16 +} from "chart.js";                                            
+       17 +import { cn } from "@/lib/utils";                             
+       18  
+        6 -import { cn } from "@/lib/utils"                              
+       19 +ChartJS.register(                                             
+       20 +  CategoryScale,                                              
+       21 +  LinearScale,                                                
+       22 +  BarElement,                                                 
+       23 +  LineElement,                                                
+       24 +  PointElement,                                               
+       25 +  ArcElement,                                                 
+       26 +  Title,                                                      
+       27 +  Tooltip,                                                    
+       28 +  Legend,                                                     
+       29 +  Filler,                                                     
+       30 +);                                                            
+       31  
+        8 -// Format: { THEME_NAME: CSS_SELECTOR }                       
+        9 -const THEMES = { light: "", dark: ".dark" } as const          
+       10 -                                                              
+       32  export type ChartConfig = {
+       33    [k in string]: {
+       13 -    label?: React.ReactNode                                   
+       14 -    icon?: React.ComponentType                                
+       15 -  } & (                                                       
+       16 -    | { color?: string; theme?: never }                       
+       17 -    | { color?: never; theme: Record<keyof typeof THEMES, stri
+          -ng> }                                                         
+       18 -  )                                                           
+       19 -}                                                             
+       34 +    label?: React.ReactNode;                                  
+       35 +    color?: string;                                           
+       36 +    icon?: React.ComponentType;                               
+       37 +  };                                                          
+       38 +};                                                            
+       39  
+       40  type ChartContextProps = {
+       22 -  config: ChartConfig                                         
+       23 -}                                                             
+       41 +  config: ChartConfig;                                        
+       42 +};                                                            
+       43  
+       25 -const ChartContext = React.createContext<ChartContextProps | n
+          -ull>(null)                                                    
+       44 +const ChartContext = React.createContext<ChartContextProps | n
+          +ull>(null);                                                   
+       45  
+       27 -function useChart() {                                         
+       28 -  const context = React.useContext(ChartContext)              
+       29 -                                                              
+       46 +export function useChart() {                                  
+       47 +  const context = React.useContext(ChartContext);             
+       48    if (!context) {
+       31 -    throw new Error("useChart must be used within a <ChartCont
+          -ainer />")                                                    
+       49 +    throw new Error("useChart must be used within a <ChartCont
+          +ainer />");                                                   
+       50    }
+       33 -                                                              
+       34 -  return context                                              
+       51 +  return context;                                             
+       52  }
+       53  
+       54  const ChartContainer = React.forwardRef<
+       55    HTMLDivElement,
+       56    React.ComponentProps<"div"> & {
+       40 -    config: ChartConfig                                       
+       41 -    children: React.ComponentProps<                           
+       42 -      typeof RechartsPrimitive.ResponsiveContainer            
+       43 -    >["children"]                                             
+       57 +    config: ChartConfig;                                      
+       58 +    children: React.ReactNode;                                
+       59    }
+       60  >(({ id, className, children, config, ...props }, ref) => {
+       46 -  const uniqueId = React.useId()                              
+       47 -  const chartId = `chart-${id || uniqueId.replace(/:/g, "")}` 
+       61 +  const uniqueId = React.useId();                             
+       62 +  const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
+       63  
+       64    return (
+       65      <ChartContext.Provider value={{ config }}>
+       66        <div
+       67          data-chart={chartId}
+       68          ref={ref}
+       54 -        className={cn(                                        
+       55 -          "flex aspect-video justify-center text-xs [&_.rechar
+          -ts-cartesian-axis-tick_text]:fill-muted-foreground [&_.rechart
+          -s-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.rec
+          -harts-curve.recharts-tooltip-cursor]:stroke-border [&_.rechart
+          -s-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:o
+          -utline-none [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-bo
+          -rder [&_.recharts-radial-bar-background-sector]:fill-muted [&_
+          -.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.re
+          -charts-reference-line_[stroke='#ccc']]:stroke-border [&_.recha
+          -rts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-sec
+          -tor]:outline-none [&_.recharts-surface]:outline-none",        
+       56 -          className                                           
+       57 -        )}                                                    
+       69 +        className={cn("flex aspect-video justify-center text-x
+          +s", className)}                                               
+       70          {...props}
+       71        >
+       60 -        <ChartStyle id={chartId} config={config} />           
+       61 -        <RechartsPrimitive.ResponsiveContainer>               
+       62 -          {children}                                          
+       63 -        </RechartsPrimitive.ResponsiveContainer>              
+       72 +        {children}                                            
+       73        </div>
+       74      </ChartContext.Provider>
+       66 -  )                                                           
+       67 -})                                                            
+       68 -ChartContainer.displayName = "Chart"                          
+       75 +  );                                                          
+       76 +});                                                           
+       77 +ChartContainer.displayName = "ChartContainer";                
+       78  
+       70 -const ChartStyle = ({ id, config }: { id: string; config: Char
+          -tConfig }) => {                                               
+       71 -  const colorConfig = Object.entries(config).filter(          
+       72 -    ([, config]) => config.theme || config.color              
+       73 -  )                                                           
+       74 -                                                              
+       75 -  if (!colorConfig.length) {                                  
+       76 -    return null                                               
+       77 -  }                                                           
+       78 -                                                              
+       79 -  return (                                                    
+       80 -    <style                                                    
+       81 -      dangerouslySetInnerHTML={{                              
+       82 -        __html: Object.entries(THEMES)                        
+       83 -          .map(                                               
+       84 -            ([theme, prefix]) => `                            
+       85 -${prefix} [data-chart=${id}] {                                
+       86 -${colorConfig                                                 
+       87 -  .map(([key, itemConfig]) => {                               
+       88 -    const color =                                             
+       89 -      itemConfig.theme?.[theme as keyof typeof itemConfig.them
+          -e] ||                                                         
+       90 -      itemConfig.color                                        
+       91 -    return color ? `  --color-${key}: ${color};` : null       
+       92 -  })                                                          
+       93 -  .join("\n")}                                                
+       94 -}                                                             
+       95 -`                                                             
+       96 -          )                                                   
+       97 -          .join("\n"),                                        
+       98 -      }}                                                      
+       99 -    />                                                        
+      100 -  )                                                           
+      101 -}                                                             
+      102 -                                                              
+      103 -const ChartTooltip = RechartsPrimitive.Tooltip                
+      104 -                                                              
+      105 -const ChartTooltipContent = React.forwardRef<                 
+      106 -  HTMLDivElement,                                             
+      107 -  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &    
+      108 -    React.ComponentProps<"div"> & {                           
+      109 -      hideLabel?: boolean                                     
+      110 -      hideIndicator?: boolean                                 
+      111 -      indicator?: "line" | "dot" | "dashed"                   
+      112 -      nameKey?: string                                        
+      113 -      labelKey?: string                                       
+      114 -    }                                                         
+      115 ->(                                                            
+      116 -  (                                                           
+      117 -    {                                                         
+      118 -      active,                                                 
+      119 -      payload,                                                
+      120 -      className,                                              
+      121 -      indicator = "dot",                                      
+      122 -      hideLabel = false,                                      
+      123 -      hideIndicator = false,                                  
+      124 -      label,                                                  
+      125 -      labelFormatter,                                         
+      126 -      labelClassName,                                         
+      127 -      formatter,                                              
+      128 -      color,                                                  
+      129 -      nameKey,                                                
+      130 -      labelKey,                                               
+      131 -    },                                                        
+      132 -    ref                                                       
+      133 -  ) => {                                                      
+      134 -    const { config } = useChart()                             
+      135 -                                                              
+      136 -    const tooltipLabel = React.useMemo(() => {                
+      137 -      if (hideLabel || !payload?.length) {                    
+      138 -        return null                                           
+      139 -      }                                                       
+      140 -                                                              
+      141 -      const [item] = payload                                  
+      142 -      const key = `${labelKey || item?.dataKey || item?.name |
+          -| "value"}`                                                   
+      143 -      const itemConfig = getPayloadConfigFromPayload(config, i
+          -tem, key)                                                     
+      144 -      const value =                                           
+      145 -        !labelKey && typeof label === "string"                
+      146 -          ? config[label as keyof typeof config]?.label || lab
+          -el                                                            
+      147 -          : itemConfig?.label                                 
+      148 -                                                              
+      149 -      if (labelFormatter) {                                   
+      150 -        return (                                              
+      151 -          <div className={cn("font-medium", labelClassName)}> 
+      152 -            {labelFormatter(value, payload)}                  
+      153 -          </div>                                              
+      154 -        )                                                     
+      155 -      }                                                       
+      156 -                                                              
+      157 -      if (!value) {                                           
+      158 -        return null                                           
+      159 -      }                                                       
+      160 -                                                              
+      161 -      return <div className={cn("font-medium", labelClassName)
+          -}>{value}</div>                                               
+      162 -    }, [                                                      
+      163 -      label,                                                  
+      164 -      labelFormatter,                                         
+      165 -      payload,                                                
+      166 -      hideLabel,                                              
+      167 -      labelClassName,                                         
+      168 -      config,                                                 
+      169 -      labelKey,                                               
+      170 -    ])                                                        
+      171 -                                                              
+      172 -    if (!active || !payload?.length) {                        
+      173 -      return null                                             
+      174 -    }                                                         
+      175 -                                                              
+      176 -    const nestLabel = payload.length === 1 && indicator !== "d
+          -ot"                                                           
+      177 -                                                              
+      178 -    return (                                                  
+      179 -      <div                                                    
+      180 -        ref={ref}                                             
+      181 -        className={cn(                                        
+      182 -          "grid min-w-[8rem] items-start gap-1.5 rounded-lg bo
+          -rder border-border/50 bg-background px-2.5 py-1.5 text-xs shad
+          -ow-xl",                                                       
+      183 -          className                                           
+      184 -        )}                                                    
+      185 -      >                                                       
+      186 -        {!nestLabel ? tooltipLabel : null}                    
+      187 -        <div className="grid gap-1.5">                        
+      188 -          {payload                                            
+      189 -            .filter((item) => item.type !== "none")           
+      190 -            .map((item, index) => {                           
+      191 -              const key = `${nameKey || item.name || item.data
+          -Key || "value"}`                                              
+      192 -              const itemConfig = getPayloadConfigFromPayload(c
+          -onfig, item, key)                                             
+      193 -              const indicatorColor = color || item.payload.fil
+          -l || item.color                                               
+      194 -                                                              
+      195 -              return (                                        
+      196 -                <div                                          
+      197 -                  key={item.dataKey}                          
+      198 -                  className={cn(                              
+      199 -                    "flex w-full flex-wrap items-stretch gap-2
+          - [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",  
+      200 -                    indicator === "dot" && "items-center"     
+      201 -                  )}                                          
+      202 -                >                                             
+      203 -                  {formatter && item?.value !== undefined && i
+          -tem.name ? (                                                  
+      204 -                    formatter(item.value, item.name, item, ind
+          -ex, item.payload)                                             
+      205 -                  ) : (                                       
+      206 -                    <>                                        
+      207 -                      {itemConfig?.icon ? (                   
+      208 -                        <itemConfig.icon />                   
+      209 -                      ) : (                                   
+      210 -                        !hideIndicator && (                   
+      211 -                          <div                                
+      212 -                            className={cn(                    
+      213 -                              "shrink-0 rounded-[2px] border-[
+          ---color-border] bg-[--color-bg]",                             
+      214 -                              {                               
+      215 -                                "h-2.5 w-2.5": indicator === "
+          -dot",                                                         
+      216 -                                "w-1": indicator === "line",  
+      217 -                                "w-0 border-[1.5px] border-das
+          -hed bg-transparent":                                          
+      218 -                                  indicator === "dashed",     
+      219 -                                "my-0.5": nestLabel && indicat
+          -or === "dashed",                                              
+      220 -                              }                               
+      221 -                            )}                                
+      222 -                            style={                           
+      223 -                              {                               
+      224 -                                "--color-bg": indicatorColor, 
+      225 -                                "--color-border": indicatorCol
+          -or,                                                           
+      226 -                              } as React.CSSProperties        
+      227 -                            }                                 
+      228 -                          />                                  
+      229 -                        )                                     
+      230 -                      )}                                      
+      231 -                      <div                                    
+      232 -                        className={cn(                        
+      233 -                          "flex flex-1 justify-between leading
+          --none",                                                       
+      234 -                          nestLabel ? "items-end" : "items-cen
+          -ter"                                                          
+      235 -                        )}                                    
+      236 -                      >                                       
+      237 -                        <div className="grid gap-1.5">        
+      238 -                          {nestLabel ? tooltipLabel : null}   
+      239 -                          <span className="text-muted-foregrou
+          -nd">                                                          
+      240 -                            {itemConfig?.label || item.name}  
+      241 -                          </span>                             
+      242 -                        </div>                                
+      243 -                        {item.value && (                      
+      244 -                          <span className="font-mono font-medi
+          -um tabular-nums text-foreground">                             
+      245 -                            {item.value.toLocaleString()}     
+      246 -                          </span>                             
+      247 -                        )}                                    
+      248 -                      </div>                                  
+      249 -                    </>                                       
+      250 -                  )}                                          
+      251 -                </div>                                        
+      252 -              )                                               
+      253 -            })}                                               
+      254 -        </div>                                                
+      255 -      </div>                                                  
+      256 -    )                                                         
+      257 -  }                                                           
+      258 -)                                                             
+      259 -ChartTooltipContent.displayName = "ChartTooltip"              
+      260 -                                                              
+      261 -const ChartLegend = RechartsPrimitive.Legend                  
+      262 -                                                              
+      263 -const ChartLegendContent = React.forwardRef<                  
+      264 -  HTMLDivElement,                                             
+      265 -  React.ComponentProps<"div"> &                               
+      266 -    Pick<RechartsPrimitive.LegendProps, "payload" | "verticalA
+          -lign"> & {                                                    
+      267 -      hideIcon?: boolean                                      
+      268 -      nameKey?: string                                        
+      269 -    }                                                         
+      270 ->(                                                            
+      271 -  (                                                           
+      272 -    { className, hideIcon = false, payload, verticalAlign = "b
+          -ottom", nameKey },                                            
+      273 -    ref                                                       
+      274 -  ) => {                                                      
+      275 -    const { config } = useChart()                             
+      276 -                                                              
+      277 -    if (!payload?.length) {                                   
+      278 -      return null                                             
+      279 -    }                                                         
+      280 -                                                              
+      281 -    return (                                                  
+      282 -      <div                                                    
+      283 -        ref={ref}                                             
+      284 -        className={cn(                                        
+      285 -          "flex items-center justify-center gap-4",           
+      286 -          verticalAlign === "top" ? "pb-3" : "pt-3",          
+      287 -          className                                           
+      288 -        )}                                                    
+      289 -      >                                                       
+      290 -        {payload                                              
+      291 -          .filter((item) => item.type !== "none")             
+      292 -          .map((item) => {                                    
+      293 -            const key = `${nameKey || item.dataKey || "value"}
+          -`                                                             
+      294 -            const itemConfig = getPayloadConfigFromPayload(con
+          -fig, item, key)                                               
+      295 -                                                              
+      296 -            return (                                          
+      297 -              <div                                            
+      298 -                key={item.value}                              
+      299 -                className={cn(                                
+      300 -                  "flex items-center gap-1.5 [&>svg]:h-3 [&>sv
+          -g]:w-3 [&>svg]:text-muted-foreground"                         
+      301 -                )}                                            
+      302 -              >                                               
+      303 -                {itemConfig?.icon && !hideIcon ? (            
+      304 -                  <itemConfig.icon />                         
+      305 -                ) : (                                         
+      306 -                  <div                                        
+      307 -                    className="h-2 w-2 shrink-0 rounded-[2px]"
+      308 -                    style={{                                  
+      309 -                      backgroundColor: item.color,            
+      310 -                    }}                                        
+      311 -                  />                                          
+      312 -                )}                                            
+      313 -                {itemConfig?.label}                           
+      314 -              </div>                                          
+      315 -            )                                                 
+      316 -          })}                                                 
+      317 -      </div>                                                  
+      318 -    )                                                         
+      319 -  }                                                           
+      320 -)                                                             
+      321 -ChartLegendContent.displayName = "ChartLegend"                
+      322 -                                                              
+      323 -// Helper to extract item config from a payload.              
+      324 -function getPayloadConfigFromPayload(                         
+      325 -  config: ChartConfig,                                        
+      326 -  payload: unknown,                                           
+      327 -  key: string                                                 
+      328 -) {                                                           
+      329 -  if (typeof payload !== "object" || payload === null) {      
+      330 -    return undefined                                          
+      331 -  }                                                           
+      332 -                                                              
+      333 -  const payloadPayload =                                      
+      334 -    "payload" in payload &&                                   
+      335 -    typeof payload.payload === "object" &&                    
+      336 -    payload.payload !== null                                  
+      337 -      ? payload.payload                                       
+      338 -      : undefined                                             
+      339 -                                                              
+      340 -  let configLabelKey: string = key                            
+      341 -                                                              
+      342 -  if (                                                        
+      343 -    key in payload &&                                         
+      344 -    typeof payload[key as keyof typeof payload] === "string"  
+      345 -  ) {                                                         
+      346 -    configLabelKey = payload[key as keyof typeof payload] as s
+          -tring                                                         
+      347 -  } else if (                                                 
+      348 -    payloadPayload &&                                         
+      349 -    key in payloadPayload &&                                  
+      350 -    typeof payloadPayload[key as keyof typeof payloadPayload] 
+          -=== "string"                                                  
+      351 -  ) {                                                         
+      352 -    configLabelKey = payloadPayload[                          
+      353 -      key as keyof typeof payloadPayload                      
+      354 -    ] as string                                               
+      355 -  }                                                           
+      356 -                                                              
+      357 -  return configLabelKey in config                             
+      358 -    ? config[configLabelKey]                                  
+      359 -    : config[key as keyof typeof config]                      
+      360 -}                                                             
+      361 -                                                              
+      362 -export {                                                      
+      363 -  ChartContainer,                                             
+      364 -  ChartTooltip,                                               
+      365 -  ChartTooltipContent,                                        
+      366 -  ChartLegend,                                                
+      367 -  ChartLegendContent,                                         
+      368 -  ChartStyle,                                                 
+      369 -}                                                             
+       79 +export { ChartContainer };                                    
+
+● এখন TypeScript build করে দেখছি কোনো error আছে কিনা।
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● কোনো TypeScript error নেই। Package.json চেক করি যে recharts সরে গেছে কিনা।
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● সব ঠিকঠাক হয়ে গেছে। সারসংক্ষেপ:
+
+  - recharts আনইন্সটল করা হয়েছে
+  - chart.js@^4.5.1 এবং react-chartjs-2@^5.3.1 (latest) ইন্সটল হয়েছে
+  - SFPChart.tsx — Pie chart সম্পূর্ণ Chart.js দিয়ে রিরাইট হয়েছে
+  - chart.tsx — recharts dependency সরিয়ে Chart.js রেজিস্ট্রেশন সহ রিরাইট হয়েছে
+  - TypeScript error নেই
+
+✻ Churned for 1m 35s
+
+❯ show the numbers on the py serface                                            
+
+● Pie slice-এর উপর number দেখাতে chartjs-plugin-datalabels লাগবে।
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Write(components\dashboard\SFPChart.tsx)
+  ⎿  Added 16 lines, removed 1 line
+       1  "use client";
+       2  
+       3  import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "
+          chart.js";
+       4 +import ChartDataLabels from "chartjs-plugin-datalabels";       
+       5  import { Pie } from "react-chartjs-2";
+       6  
+       6 -ChartJS.register(ArcElement, Tooltip, Legend);                 
+       7 +ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
+       8  
+       9  type pieData = {
+      10    success: number;
+     ...
+      31      { name: "Pending", value: chartData.pending },
+      32    ].filter((d) => d.value > 0);
+      33  
+      34 +  const total = rawData.reduce((sum, d) => sum + d.value, 0);  
+      35 +                                                               
+      36    const data = {
+      37      labels: rawData.map((d) => d.name),
+      38      datasets: [
+     ...
+      62              ` ${ctx.label}: ${ctx.parsed.toLocaleString()}`,
+      63          },
+      64        },
+      65 +      datalabels: {                                            
+      66 +        color: "#1f2937",                                      
+      67 +        font: { weight: "bold" as const, size: 12 },           
+      68 +        formatter: (value: number) => {                        
+      69 +          const pct = total > 0 ? ((value / total) * 100).toFix
+         +ed(1) : "0";                                                   
+      70 +          return `${value.toLocaleString()}\n${pct}%`;         
+      71 +        },                                                     
+      72 +        display: (ctx: { dataset: { data: number[] }; dataIndex
+         +: number }) => {                                               
+      73 +          const value = ctx.dataset.data[ctx.dataIndex];       
+      74 +          return total > 0 && value / total >= 0.05;           
+      75 +        },                                                     
+      76 +      },                                                       
+      77      },
+      78    };
+      79  
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● Type error ঠিক করছি।
+
+● Update(components\dashboard\SFPChart.tsx)
+  ⎿  Added 1 line, removed 1 line
+      1  "use client";
+      2  
+      3  import { ArcElement, Chart as ChartJS, Legend, Tooltip } from "c
+         hart.js";
+      4 -import ChartDataLabels from "chartjs-plugin-datalabels";        
+      4 +import ChartDataLabels, { Context } from "chartjs-plugin-datalab
+        +els";                                                           
+      5  import { Pie } from "react-chartjs-2";
+      6  
+      7  ChartJS.register(ArcElement, Tooltip, Legend, ChartDataLabels);
+
+● Update(components\dashboard\SFPChart.tsx)  ⎿  Added 2 lines, removed 2 lines
+      69            const pct = total > 0 ? ((value / total) * 100).toFix
+          ed(1) : "0";
+      70            return `${value.toLocaleString()}\n${pct}%`;
+      71          },
+      72 -        display: (ctx: { dataset: { data: number[] }; dataIndex
+         -: number }) => {                                               
+      73 -          const value = ctx.dataset.data[ctx.dataIndex];       
+      72 +        display: (ctx: Context) => {                           
+      73 +          const value = ctx.dataset.data[ctx.dataIndex] as numb
+         +er;                                                            
+      74            return total > 0 && value / total >= 0.05;
+      75          },
+      76        },
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● কোনো error নেই। এখন প্রতিটি pie slice-এ দেখাবে:
+  - সংখ্যা (যেমন: 12,345)
+  - শতাংশ (যেমন: 87.3%)
+
+  ৫% এর নিচের ছোট slice-এ label দেখাবে না (জায়গা না থাকায় crowded লাগে), বাকি সব slice-এ দেখাবে।
+
+✻ Cogitated for 51s
+
+❯ 1st tumi english ai kou ami bujbo bangla koio na and ekhane kan koitase je    
+  mask_success chartData te nai AllMaskChart call korle home e                  
+
+● Let me check AllMaskChart.tsx and where it's called.
+
+  Read 2 files (ctrl+o to expand)
+
+● Now let me check Charts.tsx to see where AllMaskChart is called and what data
+  is passed to it.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Found the problem. In Charts.tsx, the first chart is passing mask_success,
+  mask_failed etc. to SFPChart — but SFPChart only expects { success, failed, 
+  pending }. That first chart should be using AllMaskChart instead. Let me fix
+  it.
+
+● Update(components\dashboard\Charts.tsx)
+  ⎿  Added 1 line
+      1  "use client";
+      2  
+      3  import { useEffect, useState } from "react";
+      4 +import AllMaskChart from "./AllMaskChart";                      
+      5  import SFPChart from "./SFPChart";
+      6  import UpdateHeader from "../daily-update/UpdateHeader";
+      7  import { Lock, Unlock } from "lucide-react";
+
+● Update(components\dashboard\Charts.tsx)
+  ⎿  Added 1 line, removed 1 line
+      47      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      48        <div className="border rounded-lg shadow-lg p-4">
+      49          <UpdateHeader title="SMS Status" icon={<Lock size={16} 
+          />} />
+      50 -        <SFPChart                                              
+      50 +        <AllMaskChart                                          
+      51            label=""
+      52            chartData={{
+      53              mask_success: dailyReportData.maskSuccess,
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● No errors. The fix was simple — Charts.tsx was passing mask_success / 
+  nonmask_success etc. to SFPChart which didn't know about those fields. The
+  first chart now correctly uses AllMaskChart which expects exactly that shape.
+
+  Summary of the state:
+
+  ┌──────────────────────┬──────────────┬───────────────────────────────────┐
+  │        Chart         │  Component   │               Data                │
+  ├──────────────────────┼──────────────┼───────────────────────────────────┤
+  │ SMS Status           │ AllMaskChart │ mask_success, nonmask_success,    │
+  │ (combined)           │              │ ...                               │
+  ├──────────────────────┼──────────────┼───────────────────────────────────┤
+  │ Masked SMS Status    │ SFPChart     │ success, failed, pending          │
+  ├──────────────────────┼──────────────┼───────────────────────────────────┤
+  │ Non-Masked SMS       │ SFPChart     │ success, failed, pending          │
+  │ Status               │              │                                   │
+  └──────────────────────┴──────────────┴───────────────────────────────────┘
+
+✻ Baked for 43s
+
+❯ vai ekhane je place holder ta ase gray hoia jai je ota tumi chart er size     
+  onushare show koro and ai chart gulo 5 min por por refrese hbe I mean data    
+  refetch korbe only chart update hbe also protity chart card er konai top      
+  right ajta refresh btn thakbe jeta click korle manually shob card  er data    
+  refresh hobe chart gular                                                      
+
+  Read 1 file (ctrl+o to expand)
+
+● Got it. Three things to do:
+
+  1. Skeleton matches card size
+  2. Auto-refresh every 5 minutes
+  3. Manual refresh button (top-right of each card) that refreshes all
+
+● Write(components\dashboard\Charts.tsx)
+  ⎿  Added 75 lines, removed 32 lines
+       1  "use client";
+       2  
+       3 -import { useEffect, useState } from "react";                   
+       3 +import { useCallback, useEffect, useRef, useState } from "react
+         +";                                                             
+       4  import AllMaskChart from "./AllMaskChart";
+       5  import SFPChart from "./SFPChart";
+       6  import UpdateHeader from "../daily-update/UpdateHeader";
+       7 -import { Lock, Unlock } from "lucide-react";                   
+       7 +import { Lock, RefreshCw, Unlock } from "lucide-react";        
+       8  
+       9 +const REFRESH_INTERVAL_MS = 5 * 60 * 1000;                     
+      10 +                                                               
+      11 +type DailyReportData = {                                       
+      12 +  success: number;                                             
+      13 +  failed: number;                                              
+      14 +  pending: number;                                             
+      15 +  topClients: { clientName: string; totalSMS: number }[];      
+      16 +  maskSuccess: number;                                         
+      17 +  maskFailed: number;                                          
+      18 +  maskPending: number;                                         
+      19 +  nonmaskSuccess: number;                                      
+      20 +  nonmaskFailed: number;                                       
+      21 +  nonmaskPending: number;                                      
+      22 +};                                                             
+      23 +                                                               
+      24 +const ChartCardSkeleton = () => (                              
+      25 +  <div className="border rounded-lg shadow-lg p-4 animate-pulse
+         +">                                                             
+      26 +    <div className="h-4 w-36 bg-gray-200 rounded mb-4" />      
+      27 +    <div className="w-full aspect-square bg-gray-200 rounded-fu
+         +ll" />                                                         
+      28 +  </div>                                                       
+      29 +);                                                             
+      30 +                                                               
+      31  const Charts = () => {
+      10 -  const [dailyReportData, setDailyReportData] = useState<{     
+      11 -    success: number;                                           
+      12 -    failed: number;                                            
+      13 -    pending: number;                                           
+      14 -    topClients: { clientName: string; totalSMS: number }[];    
+      15 -    maskSuccess: number;                                       
+      16 -    maskFailed: number;                                        
+      17 -    maskPending: number;                                       
+      18 -    nonmaskSuccess: number;                                    
+      19 -    nonmaskFailed: number;                                     
+      20 -    nonmaskPending: number;                                    
+      21 -  } | null>(null);                                             
+      32 +  const [dailyReportData, setDailyReportData] =                
+      33 +    useState<DailyReportData | null>(null);                    
+      34    const [loading, setLoading] = useState(true);
+      35 +  const [refreshing, setRefreshing] = useState(false);         
+      36 +  const intervalRef = useRef<ReturnType<typeof setInterval> | n
+         +ull>(null);                                                    
+      37  
+      24 -  useEffect(() => {                                            
+      25 -    fetch("/api/daily-report-data")                            
+      26 -      .then((res) => res.json())                               
+      27 -      .then((json) => {                                        
+      28 -        if (json.success) setDailyReportData(json.smsData);    
+      29 -      })                                                       
+      30 -      .finally(() => setLoading(false));                       
+      38 +  const fetchData = useCallback(async (isManual = false) => {  
+      39 +    if (isManual) setRefreshing(true);                         
+      40 +    try {                                                      
+      41 +      const res = await fetch("/api/daily-report-data");       
+      42 +      const json = await res.json();                           
+      43 +      if (json.success) setDailyReportData(json.smsData);      
+      44 +    } finally {                                                
+      45 +      setLoading(false);                                       
+      46 +      if (isManual) setRefreshing(false);                      
+      47 +    }                                                          
+      48    }, []);
+      49  
+      33 -  if (loading)                                                 
+      50 +  useEffect(() => {                                            
+      51 +    fetchData();                                               
+      52 +    intervalRef.current = setInterval(() => fetchData(), REFRES
+         +H_INTERVAL_MS);                                                
+      53 +    return () => {                                             
+      54 +      if (intervalRef.current) clearInterval(intervalRef.curren
+         +t);                                                            
+      55 +    };                                                         
+      56 +  }, [fetchData]);                                             
+      57 +                                                               
+      58 +  const handleManualRefresh = () => fetchData(true);           
+      59 +                                                               
+      60 +  const RefreshBtn = () => (                                   
+      61 +    <button                                                    
+      62 +      onClick={handleManualRefresh}                            
+      63 +      disabled={refreshing}                                    
+      64 +      className="absolute top-3 right-3 p-1.5 rounded-md text-m
+         +uted-foreground hover:text-foreground hover:bg-muted transition
+         +-colors disabled:opacity-50"                                   
+      65 +      title="Refresh"                                          
+      66 +    >                                                          
+      67 +      <RefreshCw                                               
+      68 +        size={14}                                              
+      69 +        className={refreshing ? "animate-spin" : ""}           
+      70 +      />                                                       
+      71 +    </button>                                                  
+      72 +  );                                                           
+      73 +                                                               
+      74 +  if (loading) {                                               
+      75      return (
+      35 -      <div className="flex gap-4">                             
+      36 -        {[0, 1].map((i) => (                                   
+      37 -          <div key={i} className="flex flex-col items-center ga
+         -p-2">                                                          
+      38 -            <div className="h-40 w-40 rounded-full bg-gray-200 
+         -animate-pulse" />                                              
+      39 -            <div className="h-3 w-20 rounded bg-gray-200 animat
+         -e-pulse" />                                                    
+      40 -          </div>                                               
+      41 -        ))}                                                    
+      76 +      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">  
+      77 +        <ChartCardSkeleton />                                  
+      78 +        <ChartCardSkeleton />                                  
+      79 +        <ChartCardSkeleton />                                  
+      80        </div>
+      81      );
+      82 +  }                                                            
+      83 +                                                               
+      84    if (!dailyReportData) return <div>Failed to load data.</div>;
+      85  
+      86    return (
+      87      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      48 -      <div className="border rounded-lg shadow-lg p-4">        
+      88 +      <div className="relative border rounded-lg shadow-lg p-4"
+         +>                                                              
+      89 +        <RefreshBtn />                                         
+      90          <UpdateHeader title="SMS Status" icon={<Lock size={16} 
+          />} />
+      91          <AllMaskChart
+      92            label=""
+     ...
+      100            }}
+      101          />
+      102        </div>
+       62 -      <div className="border rounded-lg shadow-lg p-4">       
+      103 +      <div className="relative border rounded-lg shadow-lg p-4
+          +">                                                            
+      104 +        <RefreshBtn />                                        
+      105          <UpdateHeader title="Masked SMS Status" icon={<Lock si
+           ze={16} />} />
+      106          <SFPChart
+      107            label=""
+     ...
+      112            }}
+      113          />
+      114        </div>
+       73 -      <div className="border rounded-lg shadow-lg p-4">       
+      115 +      <div className="relative border rounded-lg shadow-lg p-4
+          +">                                                            
+      116 +        <RefreshBtn />                                        
+      117          <UpdateHeader
+      118            title="Non-Masked SMS Status"
+      119            icon={<Unlock size={16} />}
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● No errors. Here's what changed:
+
+  - Skeleton — ChartCardSkeleton now matches the full card size: a header
+  placeholder bar + a full aspect-square rounded circle that mirrors the actual
+  pie chart layout
+  - Auto-refresh — setInterval fires every 5 minutes silently in the background,
+  only updates the data state (chart re-renders without any loading flash)
+  - Manual refresh button — a small RefreshCw icon sits absolute top-3 right-3
+  on every card; clicking any one of them refetches all three charts' data at
+  once (since they all share the same API call). The icon spins while the
+  request is in flight.
+
+✻ Cogitated for 33s
+
+❯ and daily report o 5 min por por refetch hbe auto and ai skeliton as well as  
+  ai refetch and 5 min refetch kivabe hoise r ami kamne manage korte parbo      
+  explain korba                                                                 
+
+● Let me check the daily report page first.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● Now I have all the info needed. Adding auto-refresh + proper skeleton to the
+  daily report page.
+
+● Write(app\widgets\daily-report\page.tsx)
+  ⎿  Added 91 lines, removed 64 lines
+      1  "use client";
+      2  
+      3 -import { useEffect, useRef, useState } from "react";            
+      3 +import { useCallback, useEffect, useRef, useState } from "react"
+        +;                                                               
+      4  import moment from "moment";
+      5  import UpdateHeader from "@/components/daily-update/UpdateHeader
+         ";
+      6  import { Button } from "@/components/ui/button";
+     ...
+      14    MessageSquareCode,
+      15    RefreshCw,
+      16    Unlock,
+      17 -  Users,                                                       
+      17    Users2,
+      18  } from "lucide-react";
+      19  import StatusCard from "@/components/daily-update/StatusCard";
+      21 -import { Spinner } from "@/components/ui/spinner";             
+      22 -import { toast } from "sonner";                                
+      20  import TopClientsTable from "@/components/daily-update/TopClien
+          tsTable";
+      21  import { groupCompanies } from "@/lib/group-companies";
+      22 +import { toast } from "sonner";                                
+      23 +                                                               
+      24 +const REFRESH_INTERVAL_MS = 5 * 60 * 1000;                     
+      25 +                                                               
+      26 +const StatusCardSkeleton = () => (                             
+      27 +  <div className="flex flex-col items-center gap-y-2 justify-ce
+         +nter w-full px-4 py-6 bg-gray-100 rounded-lg shadow-md animate-
+         +pulse">                                                        
+      28 +    <div className="h-3 w-20 bg-gray-300 rounded" />           
+      29 +    <div className="h-12 w-12 rounded-full bg-gray-300" />     
+      30 +    <div className="h-8 w-16 bg-gray-300 rounded" />           
+      31 +  </div>                                                       
+      32 +);                                                             
+      33 +                                                               
+      34 +const TableRowSkeleton = () => (                               
+      35 +  <div className="flex gap-2 py-2 animate-pulse">              
+      36 +    <div className="h-4 w-4 bg-gray-200 rounded" />            
+      37 +    <div className="h-4 flex-1 bg-gray-200 rounded" />         
+      38 +    <div className="h-4 w-16 bg-gray-200 rounded" />           
+      39 +  </div>                                                       
+      40 +);                                                             
+      41 +                                                               
+      42  const DailyReportPage = () => {
+      43    const [dailyReportData, setDailyReportData] = useState<{
+      44      success: number;
+     ...
+      52      internationalConsumption: number;
+      53    } | null>(null);
+      54    const [loading, setLoading] = useState(true);
+      38 -                                                               
+      55 +  const [refreshing, setRefreshing] = useState(false);         
+      56 +  const intervalRef = useRef<ReturnType<typeof setInterval> | n
+         +ull>(null);                                                    
+      57    const reportRef = useRef<HTMLDivElement>(null);
+      58  
+      41 -  const fetchAllReportData = async () => {                     
+      42 -    setLoading(true);                                          
+      59 +  const fetchAllReportData = useCallback(async (isManual = fals
+         +e) => {                                                        
+      60 +    if (isManual) setRefreshing(true);                         
+      61      try {
+      62        const [smsResponse, metlifeResponse] = await Promise.all(
+          [
+      63          fetch("/api/daily-report-data"),
+     ...
+       76        console.error("Error fetching report data:", error);
+       77      } finally {
+       78        setLoading(false);
+       79 +      if (isManual) setRefreshing(false);                     
+       80      }
+       62 -  };                                                          
+       81 +  }, []);                                                     
+       82  
+       83    useEffect(() => {
+       84      fetchAllReportData();
+       66 -  }, []);                                                     
+       85 +    intervalRef.current = setInterval(                        
+       86 +      () => fetchAllReportData(),                             
+       87 +      REFRESH_INTERVAL_MS,                                    
+       88 +    );                                                        
+       89 +    return () => {                                            
+       90 +      if (intervalRef.current) clearInterval(intervalRef.curre
+          +nt);                                                          
+       91 +    };                                                        
+       92 +  }, [fetchAllReportData]);                                   
+       93  
+       94    const topClients = groupCompanies(dailyReportData?.topClient
+           s ?? []);
+       95  
+       70 -  const sumOfMetlifeValues = (mask: number, nonMask: number, i
+          -nt: number) => {                                              
+       71 -    return Number(mask) + Number(nonMask) + Number(int);      
+       72 -  };                                                          
+       96 +  const sumOfMetlifeValues = (mask: number, nonMask: number, i
+          +nt: number) =>                                                
+       97 +    Number(mask) + Number(nonMask) + Number(int);             
+       98  
+       99    const copyFormattedReportToClipboard = async () => {
+       75 -    if (!reportRef.current) return;                           
+       76 -    if (dailyReportData && metlifeReport) {                   
+       77 -      const html = `                                          
+      100 +    if (!reportRef.current || !dailyReportData || !metlifeRepo
+          +rt) return;                                                   
+      101 +    const html = `                                            
+      102  <div style="font-family: Segoe UI, Arial, sans-serif; font-siz
+           e:14px;">
+       79 -    <div style="font-weight:700;">-> ADN SMS PANEL STATUS ${mo
+          -ment().format("DD-MMMM-YYYY")}                                
+       80 -    </div>                                                    
+       81 -                                                              
+      103 +    <div style="font-weight:700;">-> ADN SMS PANEL STATUS ${mo
+          +ment().format("DD-MMMM-YYYY")}</div>                          
+      104  <br>
+       83 -                                                              
+      105      <div>SUCCESS: ${dailyReportData.success}</div>
+      106      <div>FAILED: ${dailyReportData.failed}</div>
+      107      <div>PENDING: ${dailyReportData.pending}</div>
+       87 -                                                              
+       88 -    <br>                                                      
+       89 -                                                              
+       90 -    <div style="font-weight:700;">-> TOP 3 CLIENTS ${moment().
+          -format("DD-MMMM-YYYY")}                                       
+       91 -    </div>                                                    
+       92 -                                                              
+      108  <br>
+       94 -                                                              
+       95 -    ${topClients                                              
+       96 -      .slice(0, 3)                                            
+       97 -      .map((c) => `<div>${c.company}</div>`)                  
+       98 -      .join("")}                                              
+      109 +    <div style="font-weight:700;">-> TOP 3 CLIENTS ${moment().
+          +format("DD-MMMM-YYYY")}</div>                                 
+      110  <br>
+      100 -         <div style="font-weight:700;">-> MetLife Bangladesh $
+          -{moment().format("DD-MMMM-YYYY")}                             
+      101 -    </div>                                                    
+      102 -                                                              
+      111 +    ${topClients.slice(0, 3).map((c) => `<div>${c.company}</di
+          +v>`).join("")}                                                
+      112  <br>
+      104 -                                                              
+      105 -  <div>Volume: ${sumOfMetlifeValues(metlifeReport.maskConsumpt
+          -ion, metlifeReport.nonMaskConsumption, metlifeReport.internati
+          -onalConsumption)}</div>                                       
+      106 -                                                              
+      107 -  <br>                                                        
+      108 -         <div style="font-weight:700;">-> One Bank PLC ${momen
+          -t().format("DD-MMMM-YYYY")}                                   
+      109 -    </div>                                                    
+      110 -                                                              
+      113 +    <div style="font-weight:700;">-> MetLife Bangladesh ${mome
+          +nt().format("DD-MMMM-YYYY")}</div>                            
+      114  <br>
+      112 -                                                              
+      113 -  <div>Volume: 0</div>                                        
+      115 +    <div>Volume: ${sumOfMetlifeValues(metlifeReport.maskConsum
+          +ption, metlifeReport.nonMaskConsumption, metlifeReport.interna
+          +tionalConsumption)}</div>                                     
+      116 +<br>                                                          
+      117 +    <div style="font-weight:700;">-> One Bank PLC ${moment().f
+          +ormat("DD-MMMM-YYYY")}</div>                                  
+      118 +<br>                                                          
+      119 +    <div>Volume: 0</div>                                      
+      120  </div>
+      121  `;
+      116 -      await navigator.clipboard.write([                       
+      117 -        new ClipboardItem({                                   
+      118 -          "text/html": new Blob([html], { type: "text/html" })
+          -,                                                             
+      119 -          "text/plain": new Blob([reportRef.current.innerText]
+          -, {                                                           
+      120 -            type: "text/plain",                               
+      121 -          }),                                                 
+      122 +    await navigator.clipboard.write([                         
+      123 +      new ClipboardItem({                                     
+      124 +        "text/html": new Blob([html], { type: "text/html" }), 
+      125 +        "text/plain": new Blob([reportRef.current.innerText], 
+          +{                                                             
+      126 +          type: "text/plain",                                 
+      127          }),
+      123 -      ]);                                                     
+      124 -      toast.success("Content Copied For Teams");              
+      125 -    }                                                         
+      128 +      }),                                                     
+      129 +    ]);                                                       
+      130 +    toast.success("Content Copied For Teams");                
+      131    };
+      132  
+      128 -  const handleRefresh = () => {                               
+      129 -    fetchAllReportData();                                     
+      130 -  };                                                          
+      131 -                                                              
+      133    return (
+      134      <div>
+      135        <h1 className="text-2xl font-semibold tracking-tight">Da
+           ily Report</h1>
+     ...
+      146                variant="outline"
+      147                size="sm"
+      148                className="gap-1.5"
+      148 -              onClick={() => handleRefresh()}                 
+      149 +              onClick={() => fetchAllReportData(true)}        
+      150 +              disabled={refreshing}                           
+      151              >
+      152                <RefreshCw
+      151 -                className={`size-3.5 ${loading ? "animate-spin
+          -" : ""}`}                                                     
+      153 +                className={`size-3.5 ${refreshing ? "animate-s
+          +pin" : ""}`}                                                  
+      154                />
+      155                Refresh
+      156              </Button>
+     ...
+      159                size="sm"
+      160                className="gap-1.5"
+      161                onClick={copyFormattedReportToClipboard}
+      162 +              disabled={!dailyReportData}                     
+      163              >
+      164                <Copy className="size-3.5" />
+      165                Copy For Teams
+      166              </Button>
+      167            </div>
+      168          </div>
+      169 +                                                              
+      170          {loading ? (
+      167 -          <div className="flex justify-center items-center">  
+      168 -            <Spinner className="size-8" />                    
+      171 +          <div className="grid grid-cols-1 lg:grid-cols-5 gap-
+          +6">                                                           
+      172 +            <div className="col-span-1 lg:col-span-3 space-y-9
+          +">                                                            
+      173 +              <div>                                           
+      174 +                <div className="h-5 w-48 bg-gray-200 rounded a
+          +nimate-pulse mb-3" />                                         
+      175 +                <div className="grid grid-cols-1 md:grid-cols-
+          +3 gap-x-4 gap-y-2">                                           
+      176 +                  <StatusCardSkeleton />                      
+      177 +                  <StatusCardSkeleton />                      
+      178 +                  <StatusCardSkeleton />                      
+      179 +                </div>                                        
+      180 +              </div>                                          
+      181 +              <div>                                           
+      182 +                <div className="h-5 w-56 bg-gray-200 rounded a
+          +nimate-pulse mb-3" />                                         
+      183 +                <div className="grid grid-cols-1 md:grid-cols-
+          +3 gap-x-4 gap-y-2">                                           
+      184 +                  <StatusCardSkeleton />                      
+      185 +                  <StatusCardSkeleton />                      
+      186 +                  <StatusCardSkeleton />                      
+      187 +                </div>                                        
+      188 +              </div>                                          
+      189 +            </div>                                            
+      190 +            <div className="col-span-1 lg:col-span-2">        
+      191 +              <div className="h-5 w-36 bg-gray-200 rounded ani
+          +mate-pulse mb-3" />                                           
+      192 +              {Array.from({ length: 5 }).map((_, i) => (      
+      193 +                <TableRowSkeleton key={i} />                  
+      194 +              ))}                                             
+      195 +            </div>                                            
+      196            </div>
+      197          ) : dailyReportData && metlifeReport ? (
+      198            <div
+     ...
+      205                    title="ADN SMS PANEL STATUS"
+      206                    icon={<MessageSquareCode className="size-4" 
+           />}
+      207                  />
+      181 -                <div className="capitalize text-sm grid grid-c
+          -ols-1 md:grid-cols-3 gap-x-4 gap-y-2 ">                       
+      208 +                <div className="capitalize text-sm grid grid-c
+          +ols-1 md:grid-cols-3 gap-x-4 gap-y-2">                        
+      209                    <StatusCard
+      210                      title="Success"
+      184 -                    value={dailyReportData?.success}          
+      211 +                    value={dailyReportData.success}           
+      212                      bgColor="bg-green-200"
+      213                      borderColor="border-green-600"
+      214                      textColor="text-green-600"
+     ...
+      216                    />
+      217                    <StatusCard
+      218                      title="Failed"
+      192 -                    value={dailyReportData?.failed}           
+      219 +                    value={dailyReportData.failed}            
+      220                      bgColor="bg-red-200"
+      221                      borderColor="border-red-600"
+      222                      textColor="text-red-600"
+     ...
+      224                    />
+      225                    <StatusCard
+      226                      title="Pending"
+      200 -                    value={dailyReportData?.pending}          
+      227 +                    value={dailyReportData.pending}           
+      228                      bgColor="bg-amber-200"
+      229                      borderColor="border-amber-500"
+      230                      textColor="text-amber-500"
+     ...
+      237                    title="METLIFE CONSUMPTION STATUS"
+      238                    icon={<MessageSquareCode className="size-4" 
+           />}
+      239                  />
+      213 -                <div className="capitalize text-sm grid grid-c
+          -ols-1 md:grid-cols-3 gap-x-4 gap-y-2 ">                       
+      240 +                <div className="capitalize text-sm grid grid-c
+          +ols-1 md:grid-cols-3 gap-x-4 gap-y-2">                        
+      241                    <StatusCard
+      242                      title="Mask"
+      243                      value={metlifeReport.maskConsumption}
+
+  Ran 1 shell command (ctrl+o to expand)
+
+● No errors. Now the explanation:
+
+  ---
+  How it works
+
+  Skeleton
+
+  // Only shows on the very first load (loading = true)
+  {loading ? <Skeleton /> : <ActualContent />}
+  Skeleton টা শুধু প্রথমবার load হওয়ার সময় দেখায়। পরে auto-refresh হলে skeleton দেখায় না —
+  data চুপচাপ background-এ update হয়, UI flicker করে না।
+
+  ---
+  Auto-refresh (5 min)
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    fetchAllReportData();                             // প্রথমবার load
+    intervalRef.current = setInterval(
+      () => fetchAllReportData(),
+      5 * 60 * 1000                                   // প্রতি ৫ মিনিটে
+    );
+    return () => clearInterval(intervalRef.current);  // page ছাড়লে clear হয়
+  }, [fetchAllReportData]);
+  - setInterval টা useEffect এর ভেতরে বসানো — component mount হলে শুরু হয়
+  - return () => clearInterval(...) — page থেকে বের হলে interval বন্ধ হয়, নইলে memory
+  leak হতো
+  - useRef দিয়ে interval ID ধরে রাখা হচ্ছে যাতে cleanup করা যায়
+
+  ---
+  Manual Refresh
+
+  const fetchAllReportData = useCallback(async (isManual = false) => {
+    if (isManual) setRefreshing(true);   // শুধু manual-এ spinner দেখায়
+    // ...fetch...
+    if (isManual) setRefreshing(false);
+  }, []);
+  - isManual = false দিয়ে auto আর manual-এর মধ্যে পার্থক্য করা হয়েছে
+  - Auto হলে কোনো spinner নেই, data quietly update হয়
+  - Manual হলে button-এ spin animation দেখায়
+
+  ---
+  কীভাবে interval টাইম change করবে
+
+  Charts.tsx আর daily-report/page.tsx দুটোতেই ফাইলের শুরুতে:
+  const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // ৫ মিনিট
+  এই constant টা change করলেই হবে। যেমন ১০ মিনিট করতে চাইলে 10 * 60 * 1000।
+
+✻ Brewed for 1m 12s
+
+❯ give me details in english no bangla                                          
+● How the Skeleton, Auto-refresh, and Manual Refresh work
+
+  ---
+  Skeleton
+
+  The skeleton only appears on the very first load — when loading is true. After
+  that, every background refresh updates the data silently without any visual
+  disruption.
+
+  {loading ? <SkeletonUI /> : <ActualContent />}
+
+  The skeleton components (StatusCardSkeleton, TableRowSkeleton) are built to
+  match the exact layout of the real content — same grid, same card dimensions —
+  so there's no layout shift when data loads in.
+
+  ---
+  Auto-refresh (every 5 minutes)
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    fetchAllReportData();                              // initial load on mount
+
+    intervalRef.current = setInterval(
+      () => fetchAllReportData(),
+      5 * 60 * 1000                                   // fires every 5 minutes
+    );
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current); // cleanup
+    };
+  }, [fetchAllReportData]);
+
+  - setInterval starts when the component mounts and calls fetchAllReportData
+  every 5 minutes
+  - The return () => clearInterval(...) inside useEffect is the cleanup function
+  — it runs when the user navigates away from the page, stopping the interval
+  and preventing memory leaks
+  - useRef holds the interval ID so the cleanup can reference and cancel it
+
+  ---
+  Manual Refresh
+
+  const fetchAllReportData = useCallback(async (isManual = false) => {
+    if (isManual) setRefreshing(true);
+    // ...fetch data...
+    if (isManual) setRefreshing(false);
+  }, []);
+
+  The same fetchAllReportData function is shared by both auto-refresh and the
+  manual button. The isManual flag distinguishes them:
+
+  ┌─────────────────┬────────────────────────┬──────────────────────────────┐
+  │                 │   isManual = false     │   isManual = true (button    │
+  │                 │         (auto)         │            click)            │
+  ├─────────────────┼────────────────────────┼──────────────────────────────┤
+  │ Spinner shown   │ No                     │ Yes — button icon spins      │
+  ├─────────────────┼────────────────────────┼──────────────────────────────┤
+  │ Loading         │ No                     │ No                           │
+  │ skeleton        │                        │                              │
+  ├─────────────────┼────────────────────────┼──────────────────────────────┤
+  │ Data updates    │ Yes                    │ Yes                          │
+  └─────────────────┴────────────────────────┴──────────────────────────────┘
+
+  This way the background refresh is completely invisible to the user, while the
+  manual button gives clear visual feedback.
+
+  ---
+  How to change the interval
+
+  Both Charts.tsx and daily-report/page.tsx have this constant at the top of the
+  file:
+
+  const REFRESH_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
+  Just change the multiplier. Examples:
+
+  const REFRESH_INTERVAL_MS = 1 * 60 * 1000;  //  1 minute
+  const REFRESH_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
+  const REFRESH_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+
+  No other code changes needed — the constant flows through to both setInterval
+  and is defined in one place per file.
+
+✻ Churned for 14s
