@@ -94,7 +94,7 @@ export async function GET(request: Request) {
             success,
             failed,
             pending,
-            topThreeClients: Array.from(
+            topClients: Array.from(
               document.querySelectorAll("#topClientTbody tr"),
             ).map((row) => {
               const cells = row.querySelectorAll("td");

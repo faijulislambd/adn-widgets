@@ -1,6 +1,7 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { PasswordStatus } from "@/components/password-status"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { AppSidebar } from "@/components/app-sidebar";
+import Charts from "@/components/dashboard/Charts";
+import { PasswordStatus } from "@/components/password-status";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,13 +9,13 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export default function Home() {
   return (
@@ -40,6 +41,7 @@ export default function Home() {
           <ThemeToggle />
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4">
+          <Charts />
           <section className="grid gap-4 md:grid-cols-3">
             <div className="rounded-lg border bg-card p-4 text-card-foreground">
               <p className="text-sm text-muted-foreground">Active jobs</p>
@@ -59,13 +61,13 @@ export default function Home() {
               Starter dashboard
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              This page is wired with a collapsible shadcn-style sidebar,
-              Redux Toolkit, and a password helper that falls back to
-              techops2026 when your configured address is unavailable.
+              This page is wired with a collapsible shadcn-style sidebar, Redux
+              Toolkit, and a password helper that falls back to techops2026 when
+              your configured address is unavailable.
             </p>
           </section>
         </main>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

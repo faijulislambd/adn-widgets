@@ -27,7 +27,7 @@ const DailyReportPage = () => {
     success: number;
     failed: number;
     pending: number;
-    topThreeClients: { clientName: string; totalSMS: number }[];
+    topClients: { clientName: string; totalSMS: number }[];
   } | null>(null);
   const [metlifeReport, setMetlifeReport] = useState<{
     maskConsumption: number;
@@ -46,7 +46,8 @@ const DailyReportPage = () => {
         fetch("/api/metlife-report"),
       ]);
       if (!smsResponse.ok) throw new Error("Failed to fetch daily report data");
-      if (!metlifeResponse.ok) throw new Error("Failed to fetch metlife report data");
+      if (!metlifeResponse.ok)
+        throw new Error("Failed to fetch metlife report data");
       const [smsJson, metlifeJson] = await Promise.all([
         smsResponse.json(),
         metlifeResponse.json(),
@@ -64,7 +65,7 @@ const DailyReportPage = () => {
     fetchAllReportData();
   }, []);
 
-  const topClients = groupCompanies(dailyReportData?.topThreeClients ?? []);
+  const topClients = groupCompanies(dailyReportData?.topClients ?? []);
 
   const sumOfMetlifeValues = (mask: number, nonMask: number, int: number) => {
     return Number(mask) + Number(nonMask) + Number(int);

@@ -52,13 +52,14 @@ export async function GET() {
       const parseCount = (selector: string) => {
         const text =
           document.querySelector(selector)?.textContent?.trim() ?? "0";
-        return parseInt(text.replace(/[^0-9]/g, ""), 10) || 0;
+        const match = text.match(/[\d,]+/);
+        return match ? parseInt(match[0].replace(/,/g, ""), 10) || 0 : 0;
       };
       return {
         success: parseCount("#success_total_sms"),
         failed: parseCount("#failed_total_sms"),
         pending: parseCount("#pending_total_sms"),
-        topThreeClients: Array.from(
+        topClients: Array.from(
           document.querySelectorAll("#topClientTbody tr"),
         ).map((row) => {
           const cells = row.querySelectorAll("td");
@@ -68,6 +69,12 @@ export async function GET() {
             totalSMS: parseInt(smsText.replace(/[^0-9]/g, ""), 10) || 0,
           };
         }),
+        maskSuccess: parseCount("#mask_success"),
+        maskFailed: parseCount("#mask_failed"),
+        maskPending: parseCount("#mask_pending"),
+        nonmaskSuccess: parseCount("#nonmask_success"),
+        nonmaskFailed: parseCount("#nonmask_failed"),
+        nonmaskPending: parseCount("#nonmask_pending"),
       };
     });
 

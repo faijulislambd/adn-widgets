@@ -21,7 +21,7 @@ interface MonthlyData {
   success: string;
   failed: string;
   pending: string;
-  topThreeClients: { clientName: string; totalSMS: string }[];
+  topClients: { clientName: string; totalSMS: string }[];
 }
 
 const MonthlyReportPage = () => {
@@ -82,7 +82,7 @@ const MonthlyReportPage = () => {
 <br>
     <div style="font-weight:700;">-> TOP 3 CLIENTS ${month}</div>
 <br>
-    ${data?.topThreeClients.map((c) => `<div>${c.clientName}</div>`).join("")}
+    ${data?.topClients.map((c) => `<div>${c.clientName}</div>`).join("")}
 </div>
 `;
     await navigator.clipboard.write([
@@ -113,7 +113,9 @@ const MonthlyReportPage = () => {
               Report of the month: {moment().format("MMMM YYYY")}
             </h1>
             {cachedAt && (
-              <p className={`text-xs mt-0.5 ${isStale ? "text-amber-500" : "text-muted-foreground"}`}>
+              <p
+                className={`text-xs mt-0.5 ${isStale ? "text-amber-500" : "text-muted-foreground"}`}
+              >
                 {isStale ? "⚠ Stale — " : ""}
                 Last updated:{" "}
                 {cacheAge === 0 ? "just now" : `${cacheAge} min ago`}
@@ -129,7 +131,9 @@ const MonthlyReportPage = () => {
               onClick={() => fetchData(false)}
               disabled={loading}
             >
-              <RefreshCw className={`size-3.5 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`size-3.5 ${loading ? "animate-spin" : ""}`}
+              />
               Refresh
             </Button>
             <Button
@@ -207,7 +211,7 @@ const MonthlyReportPage = () => {
                 icon={<Users2 className="size-4" />}
               />
               <ul className="capitalize text-sm list-disc list-inside">
-                {data.topThreeClients.map((client, index) => (
+                {data.topClients.map((client, index) => (
                   <li key={index}>{client.clientName}</li>
                 ))}
               </ul>
