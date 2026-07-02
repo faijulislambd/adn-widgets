@@ -39,6 +39,11 @@ function SidebarProvider({
 }) {
   const [open, setOpen] = React.useState(defaultOpen)
 
+  // On mobile start closed to avoid overlay covering content on first load
+  React.useEffect(() => {
+    if (window.innerWidth < 768) setOpen(false)
+  }, [])
+
   const value = React.useMemo(
     () => ({
       open,
@@ -62,6 +67,14 @@ function SidebarProvider({
             } as React.CSSProperties
           }
         >
+          {/* Mobile backdrop — click outside to close */}
+          <div
+            onClick={() => setOpen(false)}
+            className={cn(
+              "fixed inset-0 z-40 bg-black/50 transition-opacity md:hidden",
+              open ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            )}
+          />
           {children}
         </div>
       </TooltipProvider>
@@ -80,10 +93,13 @@ function Sidebar({
     <aside
       data-collapsible={open || collapsible === "none" ? "" : "icon"}
       className={cn(
-        "group/sidebar relative hidden min-h-svh w-[var(--sidebar-width)] shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 ease-linear md:block",
-        !open &&
-          collapsible === "icon" &&
-          "w-[var(--sidebar-width-icon)]",
+        "group/sidebar min-h-svh w-[var(--sidebar-width)] shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground",
+        // Mobile: fixed drawer, slides in/out from left
+        "fixed inset-y-0 left-0 z-50 transition-transform duration-200 ease-linear",
+        open ? "translate-x-0" : "-translate-x-full",
+        // Desktop: inline block, animate width instead of translate
+        "md:static md:z-auto md:block md:translate-x-0 md:transition-[width] md:duration-200",
+        !open && collapsible === "icon" && "md:w-[var(--sidebar-width-icon)]",
         className
       )}
       {...props}
