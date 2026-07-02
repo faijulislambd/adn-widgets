@@ -1,4 +1,12 @@
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, TooltipProps } from "recharts";
+import {
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  TooltipProps,
+} from "recharts";
 
 type pieData = {
   success: number;
@@ -7,7 +15,7 @@ type pieData = {
 };
 
 const COLORS: Record<string, string> = {
-  Success: "#bbf7d0",
+  Success: "#4ade80",
   Failed: "#fecaca",
   Pending: "#fde68a",
 };
@@ -37,16 +45,29 @@ const SFPChart = ({
 
   return (
     <div className="flex flex-col items-center gap-1 w-full">
-      <p className="text-xs font-semibold capitalize text-muted-foreground">{label}</p>
+      <p className="text-xs font-semibold capitalize text-muted-foreground">
+        {label}
+      </p>
       <div className="w-full aspect-square">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart margin={{ top: 4, right: 4, bottom: 4, left: 4 }}>
-            <Pie data={data} dataKey="value" nameKey="name" outerRadius="90%" label={false}>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              outerRadius="90%"
+              label={false}
+            >
               {data.map((entry) => (
                 <Cell key={entry.name} fill={COLORS[entry.name]} />
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
+            <Legend
+              verticalAlign="bottom"
+              align="center"
+              className="uppercase"
+            />
           </PieChart>
         </ResponsiveContainer>
       </div>
