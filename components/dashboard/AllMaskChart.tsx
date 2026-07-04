@@ -16,12 +16,14 @@ type pieData = {
 };
 
 const COLORS: Record<string, string> = {
-  "Mask Success": "#4ade80",
-  "Non-Mask Success": "#3b82f6",
-  "Mask Failed": "#fecaca",
-  "Non-Mask Failed": "#fecaca",
-  "Mask Pending": "#fde68a",
-  "Non-Mask Pending": "#fde68a",
+  "Mask Success": "#22c55e", // Emerald 500
+  "Non-Mask Success": "#60a5fa", // Blue 400 (lighter than current)
+
+  "Mask Failed": "#f87171", // Red 400
+  "Non-Mask Failed": "#fca5a5", // Red 300
+
+  "Mask Pending": "#fbbf24", // Amber 400
+  "Non-Mask Pending": "#fde68a", // Amber 200
 };
 
 const AllMaskChart = ({

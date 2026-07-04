@@ -16,9 +16,15 @@ export async function POST(request: Request) {
   }
 
   const id = crypto.randomUUID()
-  const host = request.headers.get("host") ?? "localhost:3000"
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http"
-  const renderUrl = `${protocol}://${host}/report-render?id=${id}`
+
+  // On a persistent server (cPanel, etc.) the app always has a local port to
+  // hit directly, which avoids depending on the public domain's SSL cert and
+  // an unnecessary round trip out through the reverse proxy and back. Only
+  // serverless platforms (no local port to bind to) need the public host.
+  const isServerless = !!(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME)
+  const renderUrl = isServerless
+    ? `${process.env.NODE_ENV === "production" ? "https" : "http"}://${request.headers.get("host") ?? "localhost:3000"}/report-render?id=${id}`
+    : `http://127.0.0.1:${process.env.PORT || 3000}/report-render?id=${id}`
 
   let page;
   try {

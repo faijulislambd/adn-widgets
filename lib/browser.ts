@@ -1,6 +1,18 @@
 import puppeteer, { Browser } from "puppeteer-core";
 import { existsSync } from "fs";
-import { join } from "path";
+
+// @sparticuz/chromium-min ships no binary of its own -- it only knows how to
+// fetch the matching Chromium pack over http(s) and cache it to /tmp on first
+// use (a plain filesystem path is silently mistreated as an extracted bin dir
+// and fails). Point it at the official pinned GitHub release: the version tag
+// makes it a permanent asset that won't disappear or drift like a "latest"
+// link would, so hosts with no local Chrome (e.g. cPanel) get a stable source.
+//
+// Pinned (exact, not caret) to 147.0.0 in package.json: 147.0.1+ raised the
+// minimum Node version to 22.17, which cPanel's Node 20 selector can't run.
+// Keep this version in sync with the @sparticuz/chromium-min version above.
+const CHROMIUM_MIN_VERSION = "147.0.0";
+const DEFAULT_CHROMIUM_PACK_URL = `https://github.com/Sparticuz/chromium/releases/download/v${CHROMIUM_MIN_VERSION}/chromium-v${CHROMIUM_MIN_VERSION}-pack.x64.tar`;
 
 const CHROME_PATHS: string[] = process.platform === "win32"
   ? [
@@ -48,20 +60,12 @@ async function launchBrowser(): Promise<Browser> {
   }
 
   const chromium = await import("@sparticuz/chromium-min");
-
-  // On Netlify, always use the remote URL so concurrent invocations don't
-  // hit ETXTBSY from two processes extracting the same tar to /tmp at once.
-  const localTar = join(process.cwd(), "public", "chromium-v149.0.0-pack.x64.tar");
-  const onNetlify = !!(process.env.NETLIFY || process.env.URL);
-  const chromiumSource =
-    !onNetlify && existsSync(localTar)
-      ? localTar
-      : `${process.env.URL || process.env.DEPLOY_URL}/chromium-v149.0.0-pack.x64.tar`;
+  const chromiumPackUrl = process.env.CHROMIUM_PACK_URL || DEFAULT_CHROMIUM_PACK_URL;
 
   return puppeteer.launch({
     args: chromium.default.args,
     defaultViewport: { width: 1280, height: 720 },
-    executablePath: await chromium.default.executablePath(chromiumSource),
+    executablePath: await chromium.default.executablePath(chromiumPackUrl),
     headless: true,
   });
 }

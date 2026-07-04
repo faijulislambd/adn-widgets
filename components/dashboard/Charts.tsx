@@ -64,27 +64,24 @@ const Charts = () => {
       className="absolute top-3 right-3 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
       title="Refresh"
     >
-      <RefreshCw
-        size={14}
-        className={refreshing ? "animate-spin" : ""}
-      />
+      <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
     </button>
   );
 
-  if (loading) {
+  if (loading || refreshing) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <ChartCardSkeleton />
         <ChartCardSkeleton />
         <ChartCardSkeleton />
-      </div>
+      </section>
     );
   }
 
   if (!dailyReportData) return <div>Failed to load data.</div>;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div className="relative border rounded-lg shadow-lg p-4">
         <RefreshBtn />
         <UpdateHeader title="SMS Status" icon={<Lock size={16} />} />
@@ -127,7 +124,7 @@ const Charts = () => {
           }}
         />
       </div>
-    </div>
+    </section>
   );
 };
 

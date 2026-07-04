@@ -108,7 +108,10 @@ const DailyReportPage = () => {
 <br>
     <div style="font-weight:700;">-> TOP 3 CLIENTS ${moment().format("DD-MMMM-YYYY")}</div>
 <br>
-    ${topClients.slice(0, 3).map((c) => `<div>${c.company}</div>`).join("")}
+    ${topClients
+      .slice(0, 3)
+      .map((c) => `<div>${c.company}</div>`)
+      .join("")}
 <br>
     <div style="font-weight:700;">-> MetLife Bangladesh ${moment().format("DD-MMMM-YYYY")}</div>
 <br>
@@ -167,7 +170,7 @@ const DailyReportPage = () => {
           </div>
         </div>
 
-        {loading ? (
+        {loading || refreshing ? (
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             <div className="col-span-1 lg:col-span-3 space-y-9">
               <div>
@@ -189,7 +192,7 @@ const DailyReportPage = () => {
             </div>
             <div className="col-span-1 lg:col-span-2">
               <div className="h-5 w-36 bg-gray-200 rounded animate-pulse mb-3" />
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 10 }).map((_, i) => (
                 <TableRowSkeleton key={i} />
               ))}
             </div>
