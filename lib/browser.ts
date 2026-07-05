@@ -59,6 +59,18 @@ async function launchBrowser(): Promise<Browser> {
     });
   }
 
+  // cPanel (and many shared hosts) mount /tmp with noexec, so Chromium
+  // extracted there cannot be spawned. Override TMPDIR/TMP before the
+  // sparticuz package resolves its cache path so extraction lands in a
+  // home-directory folder where execution IS permitted.
+  // Set CHROMIUM_CACHE_DIR in cPanel's Node.js app environment variables.
+  const cacheDir = process.env.CHROMIUM_CACHE_DIR;
+  if (cacheDir) {
+    process.env.TMPDIR = cacheDir;
+    process.env.TMP    = cacheDir;
+    process.env.TEMP   = cacheDir;
+  }
+
   const chromium = await import("@sparticuz/chromium-min");
   const chromiumPackUrl = process.env.CHROMIUM_PACK_URL || DEFAULT_CHROMIUM_PACK_URL;
 

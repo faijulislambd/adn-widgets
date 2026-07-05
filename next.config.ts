@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["puppeteer"],
+  output: "standalone",
+  serverExternalPackages: ["puppeteer-core"],
 };
 
 export default nextConfig;
