@@ -88,7 +88,12 @@
       "Bash(curl -s http://localhost:3000/api/daily-report-data --max-time 30)",
       "Bash(curl *)",
       "Bash(netstat -ano)",
-      "Bash(powershell -NoProfile -Command \"Stop-Process -Id 10604 -Force\")"
+      "Bash(powershell -NoProfile -Command \"Stop-Process -Id 10604 -Force\")",
+      "Bash(git fetch *)",
+      "Bash(gh auth *)",
+      "Bash(gh run *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['status'], d['conclusion']\\)\")",
+      "WebFetch(domain:www.githubstatus.com)"
     ]
   }
 }
