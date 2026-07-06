@@ -1,0 +1,42 @@
+name: Scrape SMS Reports
+
+on:
+  schedule:
+    # Every 5 minutes, offset from the top of the hour to avoid GitHub's
+    # busiest scheduling windows (:00/:05/:10...) which see the most delay.
+    - cron: "3,8,13,18,23,28,33,38,43,48,53,58 * * * *"
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    environment: adn-widget
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install puppeteer
+        run: npm install puppeteer@24 --no-save
+
+      - name: Scrape ADNSMS daily report
+        env:
+          ADNSMS_EMAIL: ${{ secrets.ADNSMS_EMAIL }}
+          ADNSMS_PASSWORD: ${{ secrets.ADNSMS_PASSWORD }}
+          ADNSMS_URL: ${{ vars.ADNSMS_URL }}
+          UPSTASH_REDIS_REST_URL: ${{ vars.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+        run: node .github/scripts/scrape-adnsms.mjs
+
+      - name: Scrape METLIFE report
+        env:
+          METLIFE_EMAIL: ${{ secrets.METLIFE_EMAIL }}
+          METLIFE_PASSWORD: ${{ secrets.METLIFE_PASSWORD }}
+          METLIFE_URL: ${{ vars.METLIFE_URL }}
+          UPSTASH_REDIS_REST_URL: ${{ vars.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+        run: node .github/scripts/scrape-metlife.mjs

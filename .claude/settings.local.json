@@ -83,7 +83,12 @@
       "Bash(PORT=3213 node server.js)",
       "Bash(curl -s -o /dev/null -w \"home: %{http_code}\\\\n\" http://localhost:3213/)",
       "Bash(curl -s -o /dev/null -w \"report-render: %{http_code}\\\\n\" http://localhost:3213/report-render)",
-      "PowerShell(Get-NetTCPConnection -LocalPort 3213 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; \"cleaned\")"
+      "PowerShell(Get-NetTCPConnection -LocalPort 3213 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; \"cleaned\")",
+      "Bash(curl -s -o /tmp/resp.json -w \"%{http_code}\\\\n\" http://localhost:3000/api/daily-report-data --max-time 20)",
+      "Bash(curl -s http://localhost:3000/api/daily-report-data --max-time 30)",
+      "Bash(curl *)",
+      "Bash(netstat -ano)",
+      "Bash(powershell -NoProfile -Command \"Stop-Process -Id 10604 -Force\")"
     ]
   }
 }

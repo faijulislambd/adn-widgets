@@ -59,9 +59,10 @@ const DailyReportPage = () => {
   const fetchAllReportData = useCallback(async (isManual = false) => {
     if (isManual) setRefreshing(true);
     try {
+      const suffix = isManual ? "?force=true" : "";
       const [smsResponse, metlifeResponse] = await Promise.all([
-        fetch("/api/daily-report-data"),
-        fetch("/api/metlife-report"),
+        fetch(`/api/daily-report-data${suffix}`),
+        fetch(`/api/metlife-report${suffix}`),
       ]);
       if (!smsResponse.ok) throw new Error("Failed to fetch daily report data");
       if (!metlifeResponse.ok)

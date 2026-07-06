@@ -1,20 +1,30 @@
 import { getBrowser } from "@/lib/browser";
+import { readReportCache, writeReportCache, REDIS_KEYS } from "@/lib/redis";
 
 export const maxDuration = 60;
 
-export async function GET() {
+interface DailySmsData {
+  success: number;
+  failed: number;
+  pending: number;
+  topClients: { clientName: string; totalSMS: number }[];
+  maskSuccess: number;
+  maskFailed: number;
+  maskPending: number;
+  nonmaskSuccess: number;
+  nonmaskFailed: number;
+  nonmaskPending: number;
+}
+
+async function scrapeDailySmsData(): Promise<DailySmsData> {
   const email = process.env.ADNSMS_EMAIL;
   const password = process.env.ADNSMS_PASSWORD;
   const url =
     process.env.ADNSMS_URL || "https://portal.adnsms.com/system/dashboard";
 
   if (!email || !password) {
-    return Response.json(
-      {
-        error:
-          "ADNSMS_EMAIL and ADNSMS_PASSWORD environment variables are required",
-      },
-      { status: 500 },
+    throw new Error(
+      "ADNSMS_EMAIL and ADNSMS_PASSWORD environment variables are required",
     );
   }
 
@@ -48,7 +58,7 @@ export async function GET() {
       { timeout: 30000 },
     );
 
-    const smsData = await page.evaluate(() => {
+    return await page.evaluate(() => {
       const parseCount = (selector: string) => {
         const text =
           document.querySelector(selector)?.textContent?.trim() ?? "0";
@@ -77,12 +87,57 @@ export async function GET() {
         nonmaskPending: parseCount("#nonmask_pending"),
       };
     });
-
-    return Response.json({ success: true, smsData });
-  } catch (error) {
-    console.error("Error occurred:", error);
-    return Response.json({ error: String(error) }, { status: 500 });
   } finally {
     await page?.close();
+  }
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const force = searchParams.get("force") === "true";
+
+  try {
+    if (!force) {
+      const cache = await readReportCache<DailySmsData>(
+        REDIS_KEYS.adnsmsDaily,
+      );
+      if (cache) {
+        return Response.json({
+          success: true,
+          smsData: cache.data,
+          fromCache: true,
+          cachedAt: cache.scrapedAt,
+        });
+      }
+      // No cached value yet (e.g. cron hasn't run) — fall through to a live scrape.
+    }
+
+    const smsData = await scrapeDailySmsData();
+    await writeReportCache(REDIS_KEYS.adnsmsDaily, smsData, "manual");
+
+    return Response.json({
+      success: true,
+      smsData,
+      fromCache: false,
+      cachedAt: Date.now(),
+    });
+  } catch (error) {
+    console.error("Error occurred:", error);
+
+    const staleCache = await readReportCache<DailySmsData>(
+      REDIS_KEYS.adnsmsDaily,
+    );
+    if (staleCache) {
+      return Response.json({
+        success: true,
+        smsData: staleCache.data,
+        fromCache: true,
+        stale: true,
+        cachedAt: staleCache.scrapedAt,
+        warning: "Live data unavailable — showing last cached result.",
+      });
+    }
+
+    return Response.json({ error: String(error) }, { status: 500 });
   }
 }
