@@ -38,7 +38,7 @@ export const groupCompanies = (data: Input[]) => {
     string,
     {
       company: string;
-      users: string[];
+      users: { user: string; sms: number }[];
       totalSMS: number;
     }
   >();
@@ -50,7 +50,7 @@ export const groupCompanies = (data: Input[]) => {
     if (!companyMap.has(company)) {
       companyMap.set(company, {
         company,
-        users: user ? [user] : [],
+        users: user ? [{ user, sms }] : [],
         totalSMS: sms,
       });
       continue;
@@ -60,9 +60,13 @@ export const groupCompanies = (data: Input[]) => {
 
     existing.totalSMS += sms;
 
-    // Prevent duplicate users
-    if (user && !existing.users.includes(user)) {
-      existing.users.push(user);
+    if (user) {
+      const existingUser = existing.users.find((u) => u.user === user);
+      if (existingUser) {
+        existingUser.sms += sms;
+      } else {
+        existing.users.push({ user, sms });
+      }
     }
   }
 

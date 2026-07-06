@@ -10,8 +10,13 @@ import {
 const TopClientsTable = ({
   clients,
 }: {
-  clients: { company: string; users: string[]; totalSMS: string | number }[];
+  clients: {
+    company: string;
+    users: { user: string; sms: number }[];
+    totalSMS: string | number;
+  }[];
 }) => {
+  console.log(clients);
   return (
     <div className="border rounded-lg overflow-x-auto">
       <Table>
@@ -29,7 +34,7 @@ const TopClientsTable = ({
                 {client.company}
               </TableCell>
               <TableCell className="border-r">
-                {client.users.join(" , ")}
+                {client.users.map((u) => `${u.user} (${u.sms})`).join(" , ")}
               </TableCell>
               <TableCell>{client.totalSMS}</TableCell>
             </TableRow>
