@@ -93,7 +93,10 @@
       "Bash(gh auth *)",
       "Bash(gh run *)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d['status'], d['conclusion']\\)\")",
-      "WebFetch(domain:www.githubstatus.com)"
+      "WebFetch(domain:www.githubstatus.com)",
+      "Bash(git mv *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }

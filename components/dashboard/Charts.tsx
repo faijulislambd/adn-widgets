@@ -38,7 +38,9 @@ const Charts = () => {
   const fetchData = useCallback(async (isManual = false) => {
     if (isManual) setRefreshing(true);
     try {
-      const res = await fetch("/api/daily-report-data");
+      const res = await fetch(
+        `/api/daily-report-data${isManual ? "?force=true" : ""}`,
+      );
       const json = await res.json();
       if (json.success) setDailyReportData(json.smsData);
     } finally {
