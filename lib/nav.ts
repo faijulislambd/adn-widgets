@@ -14,6 +14,7 @@ export const navItems: NavItem[] = [
     icon: LayoutTemplate,
     items: [
       { label: "SMS Word Count", href: "/widgets/sms-word-count" },
+      { label: "SMS API Tester", href: "/widgets/sms-api-tester" },
       { label: "Report Builder", href: "/widgets/report-builder" },
       { label: "Daily Report", href: "/widgets/daily-report" },
       // { label: "Monthly Report", href: "/widgets/monthly-report" },

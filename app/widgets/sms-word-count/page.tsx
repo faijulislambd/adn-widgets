@@ -16,8 +16,6 @@ const CharacterCount = () => {
   const [maskRate, setMaskRate] = useState(0);
   const [nonMaskRate, setNonMaskRate] = useState(0);
   const [totalContacts, setTotalContacts] = useState(0);
-  const [totalMaskingCost, setTotalMaskingCost] = useState(0);
-  const [totalNonMaskingCost, setTotalNonMaskingCost] = useState(0);
 
   const engSingleSmsCount = parseInt(
     process.env.ADNSMS_ENGLISH_1_SMS_COUNT || "160",
