@@ -2,9 +2,11 @@ name: Scrape SMS Reports
 
 on:
   schedule:
-    # Every 5 minutes, offset from the top of the hour to avoid GitHub's
-    # busiest scheduling windows (:00/:05/:10...) which see the most delay.
-    - cron: "3,8,13,18,23,28,33,38,43,48,53,58 * * * *"
+    # GitHub's own scheduler is best-effort and can lag the configured
+    # interval by hours regardless of how tight the cron is — this is just a
+    # background backstop, not the real freshness guarantee. That comes from
+    # the dashboard/daily-report pages forcing a live scrape on first visit.
+    - cron: "6,16,26,36,46,56 * * * *"
   workflow_dispatch:
 
 jobs:

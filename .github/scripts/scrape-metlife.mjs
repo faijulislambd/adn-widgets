@@ -6,9 +6,37 @@ const url = process.env.METLIFE_URL;
 const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
 const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
+const REDIS_KEY = "metlife:latest";
+const SKIP_IF_FRESHER_THAN_MS = 5 * 60 * 1000;
+
 if (!email || !password || !url || !redisUrl || !redisToken) {
   console.error("Missing one or more required environment variables.");
   process.exit(1);
+}
+
+const redisHeaders = { Authorization: `Bearer ${redisToken}` };
+
+async function getCachedScrapedAt() {
+  const res = await fetch(`${redisUrl}/get/${REDIS_KEY}`, {
+    headers: redisHeaders,
+  });
+  if (!res.ok) return null;
+  const { result } = await res.json();
+  if (!result) return null;
+  try {
+    return JSON.parse(result).scrapedAt ?? null;
+  } catch {
+    return null;
+  }
+}
+
+const lastScrapedAt = await getCachedScrapedAt();
+if (lastScrapedAt && Date.now() - lastScrapedAt < SKIP_IF_FRESHER_THAN_MS) {
+  const ageSec = Math.round((Date.now() - lastScrapedAt) / 1000);
+  console.log(
+    `Skipping — cached data is only ${ageSec}s old (a manual refresh or a recent run already covered this).`,
+  );
+  process.exit(0);
 }
 
 const browser = await puppeteer.launch({
@@ -96,9 +124,9 @@ try {
   const entry = { data: metlifeData, scrapedAt: Date.now(), source: "cron" };
 
   step = "write-cache";
-  const res = await fetch(`${redisUrl}/set/metlife:latest`, {
+  const res = await fetch(`${redisUrl}/set/${REDIS_KEY}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${redisToken}` },
+    headers: redisHeaders,
     body: JSON.stringify(entry),
   });
 

@@ -96,7 +96,11 @@
       "WebFetch(domain:www.githubstatus.com)",
       "Bash(git mv *)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(npx eslint *)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(node --check .github/scripts/scrape-adnsms.mjs)",
+      "Bash(node --check .github/scripts/scrape-metlife.mjs)"
     ]
   }
 }

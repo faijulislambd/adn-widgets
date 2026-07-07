@@ -34,7 +34,7 @@ const TopClientsTable = ({
                 {client.company}
               </TableCell>
               <TableCell className="border-r">
-                {client.users.map((u) => `${u.user} (${u.sms})`).join(" , ")}
+                {client.users.map((u) => `${u.user}`).join(" , ")}
               </TableCell>
               <TableCell>{client.totalSMS}</TableCell>
             </TableRow>

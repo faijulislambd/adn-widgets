@@ -5,6 +5,7 @@ import AllMaskChart from "./AllMaskChart";
 import SFPChart from "./SFPChart";
 import UpdateHeader from "../daily-update/UpdateHeader";
 import { Lock, RefreshCw, Unlock } from "lucide-react";
+import { REPORT_REFRESHED_EVENT } from "../Utils/DataLastUpdated";
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -43,6 +44,7 @@ const Charts = () => {
       );
       const json = await res.json();
       if (json.success) setDailyReportData(json.smsData);
+      if (isManual) window.dispatchEvent(new Event(REPORT_REFRESHED_EVENT));
     } finally {
       setLoading(false);
       if (isManual) setRefreshing(false);
@@ -50,7 +52,10 @@ const Charts = () => {
   }, []);
 
   useEffect(() => {
-    fetchData();
+    // Force a live scrape on first load rather than trusting whatever's
+    // cached — GitHub's background cron can lag by hours, so the first
+    // visitor of a stretch is what actually guarantees fresh data.
+    fetchData(true);
     intervalRef.current = setInterval(() => fetchData(), REFRESH_INTERVAL_MS);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);

@@ -20,6 +20,9 @@ import StatusCard from "@/components/daily-update/StatusCard";
 import TopClientsTable from "@/components/daily-update/TopClientsTable";
 import { groupCompanies } from "@/lib/group-companies";
 import { toast } from "sonner";
+import DataLastUpdated, {
+  REPORT_REFRESHED_EVENT,
+} from "@/components/Utils/DataLastUpdated";
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -73,6 +76,7 @@ const DailyReportPage = () => {
       ]);
       setDailyReportData(smsJson.smsData);
       setMetlifeReport(metlifeJson.metlifeData);
+      if (isManual) window.dispatchEvent(new Event(REPORT_REFRESHED_EVENT));
     } catch (error) {
       console.error("Error fetching report data:", error);
     } finally {
@@ -82,7 +86,10 @@ const DailyReportPage = () => {
   }, []);
 
   useEffect(() => {
-    fetchAllReportData();
+    // Force a live scrape on first load rather than trusting whatever's
+    // cached — GitHub's background cron can lag by hours, so the first
+    // visitor of a stretch is what actually guarantees fresh data.
+    fetchAllReportData(true);
     intervalRef.current = setInterval(
       () => fetchAllReportData(),
       REFRESH_INTERVAL_MS,
@@ -143,7 +150,8 @@ const DailyReportPage = () => {
       <div className="mt-4 border rounded-xl p-4 sm:p-6">
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h1 className="font-semibold uppercase text-base sm:text-lg">
-            Report of the day: {moment().format("DD-MMMM-YYYY")}
+            Report of the day: {moment().format("DD-MMMM-YYYY")}{" "}
+            <DataLastUpdated className="text-xs uppercase" />
           </h1>
           <div className="flex gap-x-2 shrink-0">
             <Button
