@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import AllMaskChart from "./AllMaskChart";
 import SFPChart from "./SFPChart";
 import UpdateHeader from "../daily-update/UpdateHeader";
-import { Lock, RefreshCw, Unlock } from "lucide-react";
+import { Lock, MessageSquareIcon, RefreshCw, Unlock } from "lucide-react";
 import { REPORT_REFRESHED_EVENT } from "../Utils/DataLastUpdated";
 
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
@@ -91,7 +91,10 @@ const Charts = () => {
     <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div className="relative border rounded-lg shadow-lg p-4">
         <RefreshBtn />
-        <UpdateHeader title="SMS Status" icon={<Lock size={16} />} />
+        <UpdateHeader
+          title="SMS Status"
+          icon={<MessageSquareIcon size={16} />}
+        />
         <AllMaskChart
           label=""
           chartData={{

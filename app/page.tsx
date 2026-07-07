@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import Charts from "@/components/dashboard/Charts";
+import ClientChart from "@/components/dashboard/ClientChart";
 import { PasswordStatus } from "@/components/password-status";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
@@ -42,8 +43,9 @@ export default function Home() {
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4">
           <Charts />
-          <section className="grid gap-4 md:grid-cols-3"></section>
-          <section className="min-h-[50vh] rounded-lg border bg-card p-6 text-card-foreground"></section>
+          <section className="min-h-30 rounded-lg border bg-card p-6 text-card-foreground">
+            <ClientChart />
+          </section>
         </main>
       </SidebarInset>
     </SidebarProvider>
