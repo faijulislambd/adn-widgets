@@ -9,7 +9,7 @@ import type { TelcoSmsRow, TelcoSmsStatusEntry } from "@/types";
 const STATUS_POLL_INTERVAL_MS = 15 * 1000;
 
 const STATUS_LABELS: Record<TelcoSmsStatusEntry["status"], string> = {
-  idle: "No data scraped yet — trigger the “Scrape Telco SMS Consumption” workflow from GitHub Actions with a start and end date.",
+  idle: "No data scraped yet — set a date range above and start a scrape.",
   running:
     "Scrape in progress — this can take up to 20 minutes for a large date range. This page will update automatically.",
   done: "Data ready.",
@@ -18,6 +18,11 @@ const STATUS_LABELS: Record<TelcoSmsStatusEntry["status"], string> = {
 
 const TelcoSmsConsumptionPage = () => {
   const [status, setStatus] = useState<TelcoSmsStatusEntry | null>(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [triggering, setTriggering] = useState(false);
+  const [triggerError, setTriggerError] = useState<string | null>(null);
+  const [triggerSuccess, setTriggerSuccess] = useState(false);
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<TelcoSmsRow[]>([]);
   const [totalRows, setTotalRows] = useState(0);
@@ -37,6 +42,36 @@ const TelcoSmsConsumptionPage = () => {
   }, [fetchStatus]);
 
   const isRunning = status?.status === "running";
+  const dateRangeInvalid =
+    !startDate || !endDate || endDate < startDate;
+
+  const handleTrigger = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (dateRangeInvalid) return;
+
+    setTriggering(true);
+    setTriggerError(null);
+    setTriggerSuccess(false);
+    try {
+      const res = await fetch("/api/telco-sms/trigger", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ startDate, endDate }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) {
+        throw new Error(json.error || "Failed to trigger scrape");
+      }
+      setTriggerSuccess(true);
+      fetchStatus();
+    } catch (error) {
+      setTriggerError(
+        error instanceof Error ? error.message : "Failed to trigger scrape",
+      );
+    } finally {
+      setTriggering(false);
+    }
+  };
 
   const handleSearch = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -64,12 +99,53 @@ const TelcoSmsConsumptionPage = () => {
         Telco SMS Consumption
       </h1>
       <p className="text-sm text-muted-foreground mt-0.5">
-        Search a manually-scraped Telco SMS Consumption report.
+        Trigger a manual scrape for a date range, then search the results.
       </p>
 
-      <div className="mt-4 border rounded-xl p-6">
+      <div className="mt-4 border rounded-xl p-6 space-y-6">
+        <div>
+          <h2 className="text-sm font-semibold mb-3">Start a scrape</h2>
+          <form onSubmit={handleTrigger} className="flex items-end gap-3">
+            <Field>
+              <FieldLabel htmlFor="start-date">Start date</FieldLabel>
+              <Input
+                id="start-date"
+                type="date"
+                value={startDate}
+                onChange={(event) => setStartDate(event.target.value)}
+                disabled={isRunning}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="end-date">End date</FieldLabel>
+              <Input
+                id="end-date"
+                type="date"
+                value={endDate}
+                onChange={(event) => setEndDate(event.target.value)}
+                disabled={isRunning}
+              />
+            </Field>
+            <Button
+              type="submit"
+              disabled={isRunning || triggering || dateRangeInvalid}
+            >
+              {triggering ? "Starting..." : "Start Scrape"}
+            </Button>
+          </form>
+          {triggerError && (
+            <p className="mt-2 text-sm text-destructive">{triggerError}</p>
+          )}
+          {triggerSuccess && !triggerError && (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Scrape triggered — this page will update automatically once it
+              starts.
+            </p>
+          )}
+        </div>
+
         <div
-          className={`mb-4 rounded-md border px-4 py-3 text-sm ${
+          className={`rounded-md border px-4 py-3 text-sm ${
             status?.status === "failed"
               ? "border-destructive/50 text-destructive"
               : status?.status === "running"
@@ -92,7 +168,7 @@ const TelcoSmsConsumptionPage = () => {
           )}
         </div>
 
-        <form onSubmit={handleSearch} className="flex items-end gap-3 mb-4">
+        <form onSubmit={handleSearch} className="flex items-end gap-3">
           <Field className="flex-1">
             <FieldLabel htmlFor="telco-sms-search">Search</FieldLabel>
             <Input
