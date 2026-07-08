@@ -23,7 +23,8 @@ export async function GET(request: Request) {
     });
   }
 
-  const { rows, startDate, endDate, scrapedAt } = cache.data;
+  const { rows, startDate, endDate } = cache.data;
+  const scrapedAt = cache.scrapedAt;
 
   const matches = query
     ? rows.filter((row) =>

@@ -16,6 +16,21 @@ const STATUS_LABELS: Record<TelcoSmsStatusEntry["status"], string> = {
   failed: "Last scrape failed.",
 };
 
+function formatTimestamp(ts: number) {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(ts));
+}
+
+function formatDateRange(start: string, end: string) {
+  const fmt = (d: string) =>
+    new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(
+      new Date(d + "T00:00:00"),
+    );
+  return `${fmt(start)} – ${fmt(end)}`;
+}
+
 const TelcoSmsConsumptionPage = () => {
   const [status, setStatus] = useState<TelcoSmsStatusEntry | null>(null);
   const [startDate, setStartDate] = useState("");
@@ -28,6 +43,9 @@ const TelcoSmsConsumptionPage = () => {
   const [totalRows, setTotalRows] = useState(0);
   const [truncated, setTruncated] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [scrapedAt, setScrapedAt] = useState<number | null>(null);
+  const [dataStartDate, setDataStartDate] = useState<string | null>(null);
+  const [dataEndDate, setDataEndDate] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
     const res = await fetch("/api/telco-sms/status");
@@ -35,15 +53,35 @@ const TelcoSmsConsumptionPage = () => {
     if (json.success) setStatus(json.status);
   }, []);
 
+  const loadData = useCallback(async (q: string) => {
+    setSearching(true);
+    try {
+      const res = await fetch(
+        `/api/telco-sms/search?q=${encodeURIComponent(q)}`,
+      );
+      const json = await res.json();
+      if (json.success) {
+        setRows(json.rows);
+        setTotalRows(json.totalRows);
+        setTruncated(json.truncated);
+        if (json.scrapedAt) setScrapedAt(json.scrapedAt);
+        if (json.startDate) setDataStartDate(json.startDate);
+        if (json.endDate) setDataEndDate(json.endDate);
+      }
+    } finally {
+      setSearching(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchStatus();
+    loadData("");
     const interval = setInterval(fetchStatus, STATUS_POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [fetchStatus]);
+  }, [fetchStatus, loadData]);
 
   const isRunning = status?.status === "running";
-  const dateRangeInvalid =
-    !startDate || !endDate || endDate < startDate;
+  const dateRangeInvalid = !startDate || !endDate || endDate < startDate;
 
   const handleTrigger = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -75,20 +113,7 @@ const TelcoSmsConsumptionPage = () => {
 
   const handleSearch = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSearching(true);
-    try {
-      const res = await fetch(
-        `/api/telco-sms/search?q=${encodeURIComponent(query)}`,
-      );
-      const json = await res.json();
-      if (json.success) {
-        setRows(json.rows);
-        setTotalRows(json.totalRows);
-        setTruncated(json.truncated);
-      }
-    } finally {
-      setSearching(false);
-    }
+    loadData(query);
   };
 
   const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
@@ -175,7 +200,7 @@ const TelcoSmsConsumptionPage = () => {
               id="telco-sms-search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search rows..."
+              placeholder="Filter by account, telco, sender number…"
               disabled={isRunning}
             />
           </Field>
@@ -185,40 +210,65 @@ const TelcoSmsConsumptionPage = () => {
         </form>
 
         {rows.length > 0 ? (
-          <div className="overflow-x-auto border rounded-lg">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-muted/50">
-                  {columns.map((col) => (
-                    <th
-                      key={col}
-                      className="text-left font-semibold px-3 py-2 whitespace-nowrap"
-                    >
-                      {col}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, i) => (
-                  <tr key={i} className="border-b last:border-0">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              {scrapedAt && (
+                <span>
+                  Last pull:{" "}
+                  <span className="font-medium text-foreground">
+                    {formatTimestamp(scrapedAt)}
+                  </span>
+                </span>
+              )}
+              {dataStartDate && dataEndDate && (
+                <>
+                  {scrapedAt && <span className="opacity-40">·</span>}
+                  <span>
+                    Data range:{" "}
+                    <span className="font-medium text-foreground">
+                      {formatDateRange(dataStartDate, dataEndDate)}
+                    </span>
+                  </span>
+                </>
+              )}
+            </div>
+            <div className="overflow-x-auto border rounded-lg">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/50">
                     {columns.map((col) => (
-                      <td key={col} className="px-3 py-2 whitespace-nowrap">
-                        {row[col]}
-                      </td>
+                      <th
+                        key={col}
+                        className="text-left font-semibold px-3 py-2 whitespace-nowrap"
+                      >
+                        {col}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="px-3 py-2 text-xs text-muted-foreground">
-              {totalRows} match{totalRows === 1 ? "" : "es"}
-              {truncated ? ` (showing first ${rows.length})` : ""}
+                </thead>
+                <tbody>
+                  {rows.map((row, i) => (
+                    <tr key={i} className="border-b last:border-0">
+                      {columns.map((col) => (
+                        <td key={col} className="px-3 py-2 whitespace-nowrap">
+                          {row[col]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-3 py-2 text-xs text-muted-foreground">
+                {totalRows} row{totalRows === 1 ? "" : "s"}
+                {truncated ? ` (showing first ${rows.length})` : ""}
+              </div>
             </div>
           </div>
+        ) : searching ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
         ) : (
           <p className="text-sm text-muted-foreground">
-            No results yet — try a search above.
+            No data yet — start a scrape above.
           </p>
         )}
       </div>
