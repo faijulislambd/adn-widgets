@@ -1,16 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
 
 import { DEFAULT_ACTION_PASSWORD, fetchActionPassword } from "@/lib/password"
+import type { PasswordState } from "@/types"
 
 export const loadPassword = createAsyncThunk("password/load", async () => {
   return fetchActionPassword()
 })
-
-type PasswordState = {
-  password: string
-  source: "remote" | "fallback"
-  status: "idle" | "loading" | "ready" | "failed"
-}
 
 const initialState: PasswordState = {
   password: DEFAULT_ACTION_PASSWORD,

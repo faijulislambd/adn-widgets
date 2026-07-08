@@ -1,14 +1,9 @@
 import { getBrowser } from "@/lib/browser";
 import { readReportCache, writeReportCache, REDIS_KEYS } from "@/lib/redis";
 import moment from "moment";
+import type { MetlifeData } from "@/types";
 
 export const maxDuration = 60;
-
-interface MetlifeData {
-  maskConsumption: number;
-  nonMaskConsumption: number;
-  internationalConsumption: number;
-}
 
 async function scrapeMetlifeData(): Promise<MetlifeData> {
   const email = process.env.METLIFE_EMAIL;

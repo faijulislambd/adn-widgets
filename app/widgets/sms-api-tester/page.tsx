@@ -1,3 +1,5 @@
+import ApiKeySecretInput from "@/components/sms/ApiKeySecretInput";
+import CampaignStatusCheck from "@/components/sms-api-tester/CampaignStatusCheck";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const SmsApiTesterPage = () => {
@@ -32,57 +34,60 @@ const SmsApiTesterPage = () => {
     },
   ];
   return (
-    <Tabs defaultValue={tabMenuItems[0].value} orientation="vertical">
-      <TabsList>
-        {tabMenuItems.map((item) => (
-          <TabsTrigger key={item.value} value={item.value}>
-            {item.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      <TabsContent value={tabMenuItems[0].value} className="w-full">
-        <h2 className="text-lg font-semibold">{tabMenuItems[0].label}</h2>
-        <p className="text-sm text-muted-foreground">
-          This is the {tabMenuItems[0].label} page.
-        </p>
-      </TabsContent>
-      <TabsContent value={tabMenuItems[1].value} className="w-full">
-        <h2 className="text-lg font-semibold">{tabMenuItems[1].label}</h2>
-        <p className="text-sm text-muted-foreground">
-          This is the {tabMenuItems[1].label} page.
-        </p>
-      </TabsContent>
-      <TabsContent value={tabMenuItems[2].value} className="w-full">
-        <h2 className="text-lg font-semibold">{tabMenuItems[2].label}</h2>
-        <p className="text-sm text-muted-foreground">
-          This is the {tabMenuItems[2].label} page.
-        </p>
-      </TabsContent>
-      <TabsContent value={tabMenuItems[3].value} className="w-full">
-        <h2 className="text-lg font-semibold">{tabMenuItems[3].label}</h2>
-        <p className="text-sm text-muted-foreground">
-          This is the {tabMenuItems[3].label} page.
-        </p>
-      </TabsContent>
-      <TabsContent value={tabMenuItems[4].value} className="w-full">
-        <h2 className="text-lg font-semibold">{tabMenuItems[4].label}</h2>
-        <p className="text-sm text-muted-foreground">
-          This is the {tabMenuItems[4].label} page.
-        </p>
-      </TabsContent>
-      <TabsContent value={tabMenuItems[5].value} className="w-full">
-        <h2 className="text-lg font-semibold">{tabMenuItems[5].label}</h2>
-        <p className="text-sm text-muted-foreground">
-          This is the {tabMenuItems[5].label} page.
-        </p>
-      </TabsContent>
-      <TabsContent value={tabMenuItems[6].value} className="w-full">
-        <h2 className="text-lg font-semibold">{tabMenuItems[6].label}</h2>
-        <p className="text-sm text-muted-foreground">
-          This is the {tabMenuItems[6].label} page.
-        </p>
-      </TabsContent>
-    </Tabs>
+    <div className="flex flex-col gap-6">
+      <ApiKeySecretInput />
+      <Tabs defaultValue={tabMenuItems[0].value}>
+        <TabsList>
+          {tabMenuItems.map((item) => (
+            <TabsTrigger key={item.value} value={item.value}>
+              {item.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        <TabsContent value={tabMenuItems[0].value} className="w-full">
+          <h2 className="text-lg font-semibold">{tabMenuItems[0].label}</h2>
+          <p className="text-sm text-muted-foreground">
+            This is the {tabMenuItems[0].label} page.
+          </p>
+        </TabsContent>
+        <TabsContent value={tabMenuItems[1].value} className="w-full">
+          <h2 className="text-lg font-semibold mb-4">
+            {tabMenuItems[1].label}
+          </h2>
+          <CampaignStatusCheck />
+        </TabsContent>
+        <TabsContent value={tabMenuItems[2].value} className="w-full">
+          <h2 className="text-lg font-semibold">{tabMenuItems[2].label}</h2>
+          <p className="text-sm text-muted-foreground">
+            This is the {tabMenuItems[2].label} page.
+          </p>
+        </TabsContent>
+        <TabsContent value={tabMenuItems[3].value} className="w-full">
+          <h2 className="text-lg font-semibold">{tabMenuItems[3].label}</h2>
+          <p className="text-sm text-muted-foreground">
+            This is the {tabMenuItems[3].label} page.
+          </p>
+        </TabsContent>
+        <TabsContent value={tabMenuItems[4].value} className="w-full">
+          <h2 className="text-lg font-semibold">{tabMenuItems[4].label}</h2>
+          <p className="text-sm text-muted-foreground">
+            This is the {tabMenuItems[4].label} page.
+          </p>
+        </TabsContent>
+        <TabsContent value={tabMenuItems[5].value} className="w-full">
+          <h2 className="text-lg font-semibold">{tabMenuItems[5].label}</h2>
+          <p className="text-sm text-muted-foreground">
+            This is the {tabMenuItems[5].label} page.
+          </p>
+        </TabsContent>
+        <TabsContent value={tabMenuItems[6].value} className="w-full">
+          <h2 className="text-lg font-semibold">{tabMenuItems[6].label}</h2>
+          <p className="text-sm text-muted-foreground">
+            This is the {tabMenuItems[6].label} page.
+          </p>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

@@ -1,7 +1,4 @@
-type Input = {
-  clientName: string;
-  totalSMS: number;
-};
+import type { GroupedCompany, TopClient } from "@/types";
 
 const parseClient = (text: string) => {
   let balance = 0;
@@ -33,15 +30,8 @@ const parseClient = (text: string) => {
   };
 };
 
-export const groupCompanies = (data: Input[]) => {
-  const companyMap = new Map<
-    string,
-    {
-      company: string;
-      users: { user: string; sms: number }[];
-      totalSMS: number;
-    }
-  >();
+export const groupCompanies = (data: TopClient[]): GroupedCompany[] => {
+  const companyMap = new Map<string, GroupedCompany>();
 
   for (const item of data) {
     const { company, user } = parseClient(item.clientName);

@@ -1,26 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
 import AllMaskChart from "./AllMaskChart";
 import SFPChart from "./SFPChart";
 import UpdateHeader from "../daily-update/UpdateHeader";
 import { Lock, MessageSquareIcon, RefreshCw, Unlock } from "lucide-react";
-import { REPORT_REFRESHED_EVENT } from "../Utils/DataLastUpdated";
-
-const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
-
-type DailyReportData = {
-  success: number;
-  failed: number;
-  pending: number;
-  topClients: { clientName: string; totalSMS: number }[];
-  maskSuccess: number;
-  maskFailed: number;
-  maskPending: number;
-  nonmaskSuccess: number;
-  nonmaskFailed: number;
-  nonmaskPending: number;
-};
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchDailyReport,
+  selectDailyReport,
+  selectIsDailyReportLoading,
+  selectIsDailyReportRefreshing,
+} from "@/store/daily-report-slice";
 
 const ChartCardSkeleton = () => (
   <div className="border rounded-lg shadow-lg p-4 animate-pulse">
@@ -30,43 +20,14 @@ const ChartCardSkeleton = () => (
 );
 
 const Charts = () => {
-  const [dailyReportData, setDailyReportData] =
-    useState<DailyReportData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const fetchData = useCallback(async (isManual = false) => {
-    if (isManual) setRefreshing(true);
-    try {
-      const res = await fetch(
-        `/api/daily-report-data${isManual ? "?force=true" : ""}`,
-      );
-      const json = await res.json();
-      if (json.success) setDailyReportData(json.smsData);
-      if (isManual) window.dispatchEvent(new Event(REPORT_REFRESHED_EVENT));
-    } finally {
-      setLoading(false);
-      if (isManual) setRefreshing(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Force a live scrape on first load rather than trusting whatever's
-    // cached — GitHub's background cron can lag by hours, so the first
-    // visitor of a stretch is what actually guarantees fresh data.
-    fetchData(true);
-    intervalRef.current = setInterval(() => fetchData(), REFRESH_INTERVAL_MS);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [fetchData]);
-
-  const handleManualRefresh = () => fetchData(true);
+  const dispatch = useAppDispatch();
+  const { smsData } = useAppSelector(selectDailyReport);
+  const loading = useAppSelector(selectIsDailyReportLoading);
+  const refreshing = useAppSelector(selectIsDailyReportRefreshing);
 
   const RefreshBtn = () => (
     <button
-      onClick={handleManualRefresh}
+      onClick={() => dispatch(fetchDailyReport(true))}
       disabled={refreshing}
       className="absolute top-3 right-3 p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-50"
       title="Refresh"
@@ -85,7 +46,7 @@ const Charts = () => {
     );
   }
 
-  if (!dailyReportData) return <div>Failed to load data.</div>;
+  if (!smsData) return <div>Failed to load data.</div>;
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -98,12 +59,12 @@ const Charts = () => {
         <AllMaskChart
           label=""
           chartData={{
-            mask_success: dailyReportData.maskSuccess,
-            mask_failed: dailyReportData.maskFailed,
-            mask_pending: dailyReportData.maskPending,
-            nonmask_success: dailyReportData.nonmaskSuccess,
-            nonmask_failed: dailyReportData.nonmaskFailed,
-            nonmask_pending: dailyReportData.nonmaskPending,
+            mask_success: smsData.maskSuccess,
+            mask_failed: smsData.maskFailed,
+            mask_pending: smsData.maskPending,
+            nonmask_success: smsData.nonmaskSuccess,
+            nonmask_failed: smsData.nonmaskFailed,
+            nonmask_pending: smsData.nonmaskPending,
           }}
         />
       </div>
@@ -113,9 +74,9 @@ const Charts = () => {
         <SFPChart
           label=""
           chartData={{
-            success: dailyReportData.maskSuccess,
-            failed: dailyReportData.maskFailed,
-            pending: dailyReportData.maskPending,
+            success: smsData.maskSuccess,
+            failed: smsData.maskFailed,
+            pending: smsData.maskPending,
           }}
         />
       </div>
@@ -128,9 +89,9 @@ const Charts = () => {
         <SFPChart
           label=""
           chartData={{
-            success: dailyReportData.nonmaskSuccess,
-            failed: dailyReportData.nonmaskFailed,
-            pending: dailyReportData.nonmaskPending,
+            success: smsData.nonmaskSuccess,
+            failed: smsData.nonmaskFailed,
+            pending: smsData.nonmaskPending,
           }}
         />
       </div>

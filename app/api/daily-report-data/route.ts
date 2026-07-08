@@ -1,20 +1,8 @@
 import { getBrowser } from "@/lib/browser";
 import { readReportCache, writeReportCache, REDIS_KEYS } from "@/lib/redis";
+import type { DailySmsData } from "@/types";
 
 export const maxDuration = 60;
-
-interface DailySmsData {
-  success: number;
-  failed: number;
-  pending: number;
-  topClients: { clientName: string; totalSMS: number }[];
-  maskSuccess: number;
-  maskFailed: number;
-  maskPending: number;
-  nonmaskSuccess: number;
-  nonmaskFailed: number;
-  nonmaskPending: number;
-}
 
 async function scrapeDailySmsData(): Promise<DailySmsData> {
   const email = process.env.ADNSMS_EMAIL;

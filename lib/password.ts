@@ -1,8 +1,6 @@
-export const DEFAULT_ACTION_PASSWORD = "techops2026"
+import type { PasswordResponse } from "@/types"
 
-type PasswordResponse = {
-  password?: unknown
-}
+export const DEFAULT_ACTION_PASSWORD = "techops2026"
 
 function readPasswordFromPayload(payload: unknown) {
   if (typeof payload === "string") {

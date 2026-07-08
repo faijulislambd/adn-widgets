@@ -14,10 +14,15 @@ import {
   TooltipItem,
 } from "chart.js";
 import { RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { Chart } from "react-chartjs-2";
 import { groupCompanies } from "@/lib/group-companies";
-import { REPORT_REFRESHED_EVENT } from "../Utils/DataLastUpdated";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchDailyReport,
+  selectDailyReport,
+  selectIsDailyReportLoading,
+  selectIsDailyReportRefreshing,
+} from "@/store/daily-report-slice";
 
 ChartJS.register(
   CategoryScale,
@@ -31,45 +36,15 @@ ChartJS.register(
   Legend,
 );
 
-const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
-
-type RawClient = { clientName: string; totalSMS: number };
-
 const ClientChart = () => {
-  const [rawTopClients, setRawTopClients] = useState<RawClient[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const dispatch = useAppDispatch();
+  const { smsData } = useAppSelector(selectDailyReport);
+  const loading = useAppSelector(selectIsDailyReportLoading);
+  const refreshing = useAppSelector(selectIsDailyReportRefreshing);
 
-  const fetchData = useCallback(async (isManual = false) => {
-    if (isManual) setRefreshing(true);
-    try {
-      const res = await fetch(
-        `/api/daily-report-data${isManual ? "?force=true" : ""}`,
-      );
-      const json = await res.json();
-      if (json.success) setRawTopClients(json.smsData.topClients);
-      if (isManual) window.dispatchEvent(new Event(REPORT_REFRESHED_EVENT));
-    } finally {
-      setLoading(false);
-      if (isManual) setRefreshing(false);
-    }
-  }, []);
+  const handleManualRefresh = () => dispatch(fetchDailyReport(true));
 
-  useEffect(() => {
-    // Force a live scrape on first load rather than trusting whatever's
-    // cached — GitHub's background cron can lag by hours, so the first
-    // visitor of a stretch is what actually guarantees fresh data.
-    fetchData(true);
-    intervalRef.current = setInterval(() => fetchData(), REFRESH_INTERVAL_MS);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [fetchData]);
-
-  const handleManualRefresh = () => fetchData(true);
-
-  const topClients = groupCompanies(rawTopClients);
+  const topClients = groupCompanies(smsData?.topClients ?? []);
   const labels = topClients.map((company) => company.company);
   const totalSmsData = topClients.map((company) => company.totalSMS);
   const smsPerClientData = topClients.map((company) => {

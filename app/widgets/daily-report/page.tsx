@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import moment from "moment";
 import UpdateHeader from "@/components/daily-update/UpdateHeader";
 import { Button } from "@/components/ui/button";
@@ -20,11 +20,14 @@ import StatusCard from "@/components/daily-update/StatusCard";
 import TopClientsTable from "@/components/daily-update/TopClientsTable";
 import { groupCompanies } from "@/lib/group-companies";
 import { toast } from "sonner";
-import DataLastUpdated, {
-  REPORT_REFRESHED_EVENT,
-} from "@/components/Utils/DataLastUpdated";
-
-const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+import DataLastUpdated from "@/components/Utils/DataLastUpdated";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchDailyReport,
+  selectDailyReport,
+  selectIsDailyReportLoading,
+  selectIsDailyReportRefreshing,
+} from "@/store/daily-report-slice";
 
 const StatusCardSkeleton = () => (
   <div className="flex flex-col items-center gap-y-2 justify-center w-full px-4 py-6 bg-gray-100 rounded-lg shadow-md animate-pulse">
@@ -43,61 +46,12 @@ const TableRowSkeleton = () => (
 );
 
 const DailyReportPage = () => {
-  const [dailyReportData, setDailyReportData] = useState<{
-    success: number;
-    failed: number;
-    pending: number;
-    topClients: { clientName: string; totalSMS: number }[];
-  } | null>(null);
-  const [metlifeReport, setMetlifeReport] = useState<{
-    maskConsumption: number;
-    nonMaskConsumption: number;
-    internationalConsumption: number;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const dispatch = useAppDispatch();
+  const { smsData: dailyReportData, metlifeData: metlifeReport } =
+    useAppSelector(selectDailyReport);
+  const loading = useAppSelector(selectIsDailyReportLoading);
+  const refreshing = useAppSelector(selectIsDailyReportRefreshing);
   const reportRef = useRef<HTMLDivElement>(null);
-
-  const fetchAllReportData = useCallback(async (isManual = false) => {
-    if (isManual) setRefreshing(true);
-    try {
-      const suffix = isManual ? "?force=true" : "";
-      const [smsResponse, metlifeResponse] = await Promise.all([
-        fetch(`/api/daily-report-data${suffix}`),
-        fetch(`/api/metlife-report${suffix}`),
-      ]);
-      if (!smsResponse.ok) throw new Error("Failed to fetch daily report data");
-      if (!metlifeResponse.ok)
-        throw new Error("Failed to fetch metlife report data");
-      const [smsJson, metlifeJson] = await Promise.all([
-        smsResponse.json(),
-        metlifeResponse.json(),
-      ]);
-      setDailyReportData(smsJson.smsData);
-      setMetlifeReport(metlifeJson.metlifeData);
-      if (isManual) window.dispatchEvent(new Event(REPORT_REFRESHED_EVENT));
-    } catch (error) {
-      console.error("Error fetching report data:", error);
-    } finally {
-      setLoading(false);
-      if (isManual) setRefreshing(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Force a live scrape on first load rather than trusting whatever's
-    // cached — GitHub's background cron can lag by hours, so the first
-    // visitor of a stretch is what actually guarantees fresh data.
-    fetchAllReportData(true);
-    intervalRef.current = setInterval(
-      () => fetchAllReportData(),
-      REFRESH_INTERVAL_MS,
-    );
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [fetchAllReportData]);
 
   const topClients = groupCompanies(dailyReportData?.topClients ?? []);
 
@@ -158,7 +112,7 @@ const DailyReportPage = () => {
               variant="outline"
               size="sm"
               className="gap-1.5"
-              onClick={() => fetchAllReportData(true)}
+              onClick={() => dispatch(fetchDailyReport(true))}
               disabled={refreshing}
             >
               <RefreshCw

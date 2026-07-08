@@ -1,11 +1,5 @@
 import { LayoutTemplate, SquareTerminal } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-
-export type NavChild = { label: string; href: string };
-
-export type NavItem =
-  | { title: string; icon: LucideIcon; url: string; items?: never }
-  | { title: string; icon: LucideIcon; url?: never; items: NavChild[] };
+import type { NavItem } from "@/types";
 
 export const navItems: NavItem[] = [
   { title: "Dashboard", icon: SquareTerminal, url: "/" },

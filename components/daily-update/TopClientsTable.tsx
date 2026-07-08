@@ -6,16 +6,9 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
+import type { GroupedCompany } from "@/types";
 
-const TopClientsTable = ({
-  clients,
-}: {
-  clients: {
-    company: string;
-    users: { user: string; sms: number }[];
-    totalSMS: string | number;
-  }[];
-}) => {
+const TopClientsTable = ({ clients }: { clients: GroupedCompany[] }) => {
   console.log(clients);
   return (
     <div className="border rounded-lg overflow-x-auto">

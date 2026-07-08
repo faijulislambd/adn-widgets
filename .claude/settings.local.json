@@ -100,7 +100,9 @@
       "Bash(npx eslint *)",
       "Bash(echo \"EXIT:$?\")",
       "Bash(node --check .github/scripts/scrape-adnsms.mjs)",
-      "Bash(node --check .github/scripts/scrape-metlife.mjs)"
+      "Bash(node --check .github/scripts/scrape-metlife.mjs)",
+      "Bash(rm -rf .next)",
+      "Bash(echo \"EXIT_CODE:$?\")"
     ]
   }
 }

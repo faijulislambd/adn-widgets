@@ -1,4 +1,5 @@
 import { Redis } from "@upstash/redis";
+import type { CachedReport, CacheSource } from "@/types";
 
 let client: Redis | null = null;
 let warnedMissingConfig = false;
@@ -22,12 +23,6 @@ function getClient(): Redis | null {
   return client;
 }
 
-export interface CachedReport<T> {
-  data: T;
-  scrapedAt: number;
-  source: "cron" | "manual";
-}
-
 export async function readReportCache<T>(
   key: string,
 ): Promise<CachedReport<T> | null> {
@@ -46,7 +41,7 @@ export async function readReportCache<T>(
 export async function writeReportCache<T>(
   key: string,
   data: T,
-  source: "cron" | "manual",
+  source: CacheSource,
 ): Promise<void> {
   const redis = getClient();
   if (!redis) return;
