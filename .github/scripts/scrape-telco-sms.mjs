@@ -47,6 +47,24 @@ async function setRedis(key, data) {
   }
 }
 
+// The report page appears to trigger a full reload on some interactions
+// (not just the final submit), which races any immediate follow-up action
+// against the navigation and throws "Execution context was destroyed."
+// Wrapping a step in this retries the whole thing — including re-finding
+// the element — after a short pause, rather than failing outright.
+async function withRetry(fn, attempts = 3, delayMs = 2000) {
+  let lastError;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  throw lastError;
+}
+
 await setRedis(STATUS_KEY, {
   status: "running",
   startDate,
@@ -59,13 +77,18 @@ const browser = await puppeteer.launch({
   args: ["--no-sandbox", "--disable-setuid-sandbox"],
 });
 
+let step = "init";
+
 try {
   const page = await browser.newPage();
 
+  step = "goto-login";
   await page.goto(loginUrl, { waitUntil: "networkidle2" });
 
+  step = "login-check";
   const emailField = await page.$("#email");
   if (emailField) {
+    step = "login";
     await page.type("#email", email);
     await page.waitForSelector("#password");
     await page.type("#password", password);
@@ -76,40 +99,47 @@ try {
     ]);
   }
 
+  step = "goto-telco";
   await page.goto(telcoUrl, { waitUntil: "networkidle2" });
 
-  await page.waitForSelector("#formDate");
-  await page.waitForSelector("#toDate");
-
-  await page.$eval(
-    "#formDate",
-    (el, value) => {
-      el.value = value;
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-      el.dispatchEvent(new Event("change", { bubbles: true }));
-    },
-    startDate,
+  step = "set-start-date";
+  await withRetry(() =>
+    page.waitForSelector("#formDate").then(() =>
+      page.$eval(
+        "#formDate",
+        (el, value) => {
+          el.value = value;
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+        },
+        startDate,
+      ),
+    ),
   );
 
-  await page.$eval(
-    "#toDate",
-    (el, value) => {
-      el.value = value;
-      el.dispatchEvent(new Event("input", { bubbles: true }));
-      el.dispatchEvent(new Event("change", { bubbles: true }));
-    },
-    endDate,
+  step = "set-end-date";
+  await withRetry(() =>
+    page.waitForSelector("#toDate").then(() =>
+      page.$eval(
+        "#toDate",
+        (el, value) => {
+          el.value = value;
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+        },
+        endDate,
+      ),
+    ),
   );
 
-  await page.waitForSelector("[type='submit']");
+  step = "submit-search";
+  await withRetry(() =>
+    page
+      .waitForSelector("[type='submit']")
+      .then(() => page.click("[type='submit']")),
+  );
 
-  // Submitting almost certainly triggers a full page reload rather than an
-  // AJAX update — clicking and immediately evaluating page content races
-  // the navigation and throws "Execution context was destroyed." Each
-  // poll's $$eval is wrapped so that race (or any mid-navigation moment)
-  // is treated as "not ready yet" and retried, not a fatal error.
-  await page.click("[type='submit']");
-
+  step = "wait-for-table";
   const started = Date.now();
   let previousCount = -1;
   let stableRounds = 0;
@@ -140,36 +170,27 @@ try {
     throw new Error("Table never populated with data within the time limit.");
   }
 
-  let rows;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      rows = await page.$$eval("#smslogTable", (table) => {
-        const headerCells = Array.from(table.querySelectorAll("thead th")).map(
-          (th) => th.textContent?.trim() || "",
-        );
-        const bodyRows = Array.from(table.querySelectorAll("tbody tr"));
+  step = "extract-rows";
+  const rows = await withRetry(() =>
+    page.$$eval("#smslogTable", (table) => {
+      const headerCells = Array.from(table.querySelectorAll("thead th")).map(
+        (th) => th.textContent?.trim() || "",
+      );
+      const bodyRows = Array.from(table.querySelectorAll("tbody tr"));
 
-        return bodyRows.map((tr) => {
-          const cells = Array.from(tr.querySelectorAll("td"));
-          const row = {};
-          cells.forEach((td, i) => {
-            const key = headerCells[i] || `column_${i}`;
-            row[key] = td.textContent?.trim() || "";
-          });
-          return row;
+      return bodyRows.map((tr) => {
+        const cells = Array.from(tr.querySelectorAll("td"));
+        const row = {};
+        cells.forEach((td, i) => {
+          const key = headerCells[i] || `column_${i}`;
+          row[key] = td.textContent?.trim() || "";
         });
+        return row;
       });
-      break;
-    } catch {
-      // Same context-destroyed race — brief pause and try again.
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-  }
+    }),
+  );
 
-  if (!rows) {
-    throw new Error("Failed to read table contents after retries.");
-  }
-
+  step = "write-cache";
   await setRedis(DATA_KEY, { rows, startDate, endDate });
 
   await setRedis(STATUS_KEY, {
@@ -184,14 +205,15 @@ try {
   // logs are visible to anyone. Only a non-identifying count.
   console.log(`Telco SMS scrape succeeded — ${rows.length} rows cached.`);
 } catch (err) {
-  console.error("Telco SMS scrape failed:", err.message);
+  const message = `[${step}] ${err.message}`;
+  console.error("Telco SMS scrape failed:", message);
   try {
     await setRedis(STATUS_KEY, {
       status: "failed",
       startDate,
       endDate,
       finishedAt: Date.now(),
-      error: err.message,
+      error: message,
     });
   } catch {
     // Redis write itself failed — nothing more we can do here.
