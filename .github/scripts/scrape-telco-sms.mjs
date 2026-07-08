@@ -102,6 +102,12 @@ try {
   );
 
   await page.waitForSelector("[type='submit']");
+
+  // Submitting almost certainly triggers a full page reload rather than an
+  // AJAX update — clicking and immediately evaluating page content races
+  // the navigation and throws "Execution context was destroyed." Each
+  // poll's $$eval is wrapped so that race (or any mid-navigation moment)
+  // is treated as "not ready yet" and retried, not a fatal error.
   await page.click("[type='submit']");
 
   const started = Date.now();
@@ -109,18 +115,23 @@ try {
   let stableRounds = 0;
 
   while (Date.now() - started < MAX_WAIT_MS) {
-    const rowCount = await page.$$eval(
-      "#smslogTable tbody tr",
-      (rows) => rows.length,
-    );
+    let rowCount = null;
+    try {
+      rowCount = await page.$$eval(
+        "#smslogTable tbody tr",
+        (rows) => rows.length,
+      );
+    } catch {
+      // Page context destroyed (navigation in progress) — wait and retry.
+    }
 
-    if (rowCount > 0 && rowCount === previousCount) {
+    if (rowCount !== null && rowCount > 0 && rowCount === previousCount) {
       stableRounds++;
       if (stableRounds >= 2) break;
     } else {
       stableRounds = 0;
     }
-    previousCount = rowCount;
+    if (rowCount !== null) previousCount = rowCount;
 
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
@@ -129,22 +140,35 @@ try {
     throw new Error("Table never populated with data within the time limit.");
   }
 
-  const rows = await page.$$eval("#smslogTable", (table) => {
-    const headerCells = Array.from(table.querySelectorAll("thead th")).map(
-      (th) => th.textContent?.trim() || "",
-    );
-    const bodyRows = Array.from(table.querySelectorAll("tbody tr"));
+  let rows;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      rows = await page.$$eval("#smslogTable", (table) => {
+        const headerCells = Array.from(table.querySelectorAll("thead th")).map(
+          (th) => th.textContent?.trim() || "",
+        );
+        const bodyRows = Array.from(table.querySelectorAll("tbody tr"));
 
-    return bodyRows.map((tr) => {
-      const cells = Array.from(tr.querySelectorAll("td"));
-      const row = {};
-      cells.forEach((td, i) => {
-        const key = headerCells[i] || `column_${i}`;
-        row[key] = td.textContent?.trim() || "";
+        return bodyRows.map((tr) => {
+          const cells = Array.from(tr.querySelectorAll("td"));
+          const row = {};
+          cells.forEach((td, i) => {
+            const key = headerCells[i] || `column_${i}`;
+            row[key] = td.textContent?.trim() || "";
+          });
+          return row;
+        });
       });
-      return row;
-    });
-  });
+      break;
+    } catch {
+      // Same context-destroyed race — brief pause and try again.
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+
+  if (!rows) {
+    throw new Error("Failed to read table contents after retries.");
+  }
 
   await setRedis(DATA_KEY, { rows, startDate, endDate });
 
