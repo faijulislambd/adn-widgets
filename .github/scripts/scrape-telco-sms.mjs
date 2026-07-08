@@ -172,7 +172,7 @@ try {
 
   step = "extract-rows";
   const rows = await withRetry(() =>
-    page.$$eval("#smslogTable", (table) => {
+    page.$eval("#smslogTable", (table) => {
       const headerCells = Array.from(table.querySelectorAll("thead th")).map(
         (th) => th.textContent?.trim() || "",
       );
