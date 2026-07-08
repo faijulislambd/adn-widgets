@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  BarController,
   BarElement,
   CategoryScale,
   Chart as ChartJS,
   Legend,
   LinearScale,
+  LineController,
   LineElement,
   PointElement,
   Tooltip,
@@ -20,7 +22,9 @@ import { REPORT_REFRESHED_EVENT } from "../Utils/DataLastUpdated";
 ChartJS.register(
   CategoryScale,
   LinearScale,
+  BarController,
   BarElement,
+  LineController,
   PointElement,
   LineElement,
   Tooltip,
