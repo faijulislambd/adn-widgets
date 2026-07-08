@@ -57,4 +57,6 @@ export async function writeReportCache<T>(
 export const REDIS_KEYS = {
   adnsmsDaily: "adnsms:daily:latest",
   metlife: "metlife:latest",
+  telcoSmsStatus: "telco-sms:status",
+  telcoSmsData: "telco-sms:data",
 } as const;

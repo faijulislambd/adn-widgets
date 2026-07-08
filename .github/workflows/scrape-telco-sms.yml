@@ -1,0 +1,44 @@
+name: Scrape Telco SMS Consumption
+
+# Manual only — this report can take 10-20 minutes to load for a large date
+# range, runs at most a couple of times a month, and there's no need for a
+# recurring cron. Trigger it from the Actions tab ("Run workflow") and fill
+# in the two date inputs there.
+on:
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: "Start date (YYYY-MM-DD)"
+        required: true
+      end_date:
+        description: "End date (YYYY-MM-DD)"
+        required: true
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    environment: adn-widget
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install puppeteer
+        run: npm install puppeteer@24 --no-save --no-package-lock --no-audit --no-fund
+
+      - name: Scrape Telco SMS Consumption
+        env:
+          ADNSMS_EMAIL: ${{ secrets.ADNSMS_EMAIL }}
+          ADNSMS_PASSWORD: ${{ secrets.ADNSMS_PASSWORD }}
+          ADNSMS_URL: ${{ vars.ADNSMS_URL }}
+          ADNSMS_TELCO_SMS_URL: ${{ vars.ADNSMS_TELCO_SMS_URL }}
+          UPSTASH_REDIS_REST_URL: ${{ vars.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          START_DATE: ${{ inputs.start_date }}
+          END_DATE: ${{ inputs.end_date }}
+        run: node .github/scripts/scrape-telco-sms.mjs

@@ -11,3 +11,4 @@ export * from "./monthly-report";
 export * from "./password";
 export * from "./report-render";
 export * from "./report-builder";
+export * from "./telco-sms";

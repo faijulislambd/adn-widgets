@@ -11,6 +11,10 @@ export const navItems: NavItem[] = [
       { label: "SMS API Tester", href: "/widgets/sms-api-tester" },
       { label: "Report Builder", href: "/widgets/report-builder" },
       { label: "Daily Report", href: "/widgets/daily-report" },
+      {
+        label: "Telco SMS Consumption",
+        href: "/widgets/telco-sms-consumption",
+      },
       // { label: "Monthly Report", href: "/widgets/monthly-report" },
     ],
   },
