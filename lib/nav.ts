@@ -7,14 +7,14 @@ export const navItems: NavItem[] = [
     title: "Widgets",
     icon: LayoutTemplate,
     items: [
-      { label: "SMS Word Count", href: "/widgets/sms-word-count" },
-      { label: "SMS API Tester", href: "/widgets/sms-api-tester" },
-      { label: "Report Builder", href: "/widgets/report-builder" },
       { label: "Daily Report", href: "/widgets/daily-report" },
+      { label: "SMS Word Count", href: "/widgets/sms-word-count" },
+      { label: "Report Builder", href: "/widgets/report-builder" },
       {
         label: "Telco SMS Consumption",
         href: "/widgets/telco-sms-consumption",
       },
+      // { label: "SMS API Tester", href: "/widgets/sms-api-tester" },
       // { label: "Monthly Report", href: "/widgets/monthly-report" },
     ],
   },
