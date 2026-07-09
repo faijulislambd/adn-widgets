@@ -65,11 +65,13 @@ async function withRetry(fn, attempts = 3, delayMs = 2000) {
   throw lastError;
 }
 
+const startedAt = Date.now();
+
 await setRedis(STATUS_KEY, {
   status: "running",
   startDate,
   endDate,
-  startedAt: Date.now(),
+  startedAt,
 });
 
 const browser = await puppeteer.launch({

@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { usePathname } from "next/navigation"
-import { AppSidebar } from "@/components/app-sidebar"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { usePathname } from "next/navigation";
+import { AppSidebar } from "@/components/app-sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,18 +10,25 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { getBreadcrumb } from "@/lib/nav"
+} from "@/components/ui/sidebar";
+import { getBreadcrumb } from "@/lib/nav";
 
-export default function WidgetsLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
-  const crumb = getBreadcrumb(pathname) ?? { parent: "Widgets", label: "Overview" }
+export default function WidgetsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  const crumb = getBreadcrumb(pathname) ?? {
+    parent: "Widgets",
+    label: "Overview",
+  };
 
   return (
     <SidebarProvider defaultOpen>
@@ -45,10 +52,10 @@ export default function WidgetsLayout({ children }: { children: React.ReactNode 
           </div>
           <ThemeToggle />
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:p-6">
+        <main className="flex flex-1 flex-col gap-4 p-4 md:p-6 overflow-hidden">
           {children}
         </main>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

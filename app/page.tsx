@@ -41,7 +41,7 @@ export default function Home() {
           </div>
           <ThemeToggle />
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4">
+        <main className="flex flex-1 flex-col gap-4 p-4 ">
           <Charts />
           <section className="min-h-30 rounded-lg border bg-card p-6 text-card-foreground">
             <ClientChart />

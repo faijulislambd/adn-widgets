@@ -1,10 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import type { TelcoSmsRow, TelcoSmsStatusEntry } from "@/types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const STATUS_POLL_INTERVAL_MS = 15 * 1000;
 
@@ -31,6 +39,16 @@ function formatDateRange(start: string, end: string) {
   return `${fmt(start)} – ${fmt(end)}`;
 }
 
+function formatDuration(ms: number) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) return `${hours}h ${minutes}m ${seconds}s`;
+  if (minutes > 0) return `${minutes}m ${seconds}s`;
+  return `${seconds}s`;
+}
+
 const TelcoSmsConsumptionPage = () => {
   const [status, setStatus] = useState<TelcoSmsStatusEntry | null>(null);
   const [startDate, setStartDate] = useState("");
@@ -40,12 +58,12 @@ const TelcoSmsConsumptionPage = () => {
   const [triggerSuccess, setTriggerSuccess] = useState(false);
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<TelcoSmsRow[]>([]);
-  const [totalRows, setTotalRows] = useState(0);
-  const [truncated, setTruncated] = useState(false);
-  const [searching, setSearching] = useState(false);
+  const [loadingData, setLoadingData] = useState(false);
   const [scrapedAt, setScrapedAt] = useState<number | null>(null);
   const [dataStartDate, setDataStartDate] = useState<string | null>(null);
   const [dataEndDate, setDataEndDate] = useState<string | null>(null);
+  const prevStatusRef = useRef<TelcoSmsStatusEntry["status"] | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   const fetchStatus = useCallback(async () => {
     const res = await fetch("/api/telco-sms/status");
@@ -53,35 +71,50 @@ const TelcoSmsConsumptionPage = () => {
     if (json.success) setStatus(json.status);
   }, []);
 
-  const loadData = useCallback(async (q: string) => {
-    setSearching(true);
+  // Loads the whole dataset once — all searching/filtering below happens
+  // client-side against this, no server round trip per keystroke.
+  const loadAllData = useCallback(async () => {
+    setLoadingData(true);
     try {
-      const res = await fetch(
-        `/api/telco-sms/search?q=${encodeURIComponent(q)}`,
-      );
+      const res = await fetch("/api/telco-sms/search");
       const json = await res.json();
       if (json.success) {
         setRows(json.rows);
-        setTotalRows(json.totalRows);
-        setTruncated(json.truncated);
         if (json.scrapedAt) setScrapedAt(json.scrapedAt);
         if (json.startDate) setDataStartDate(json.startDate);
         if (json.endDate) setDataEndDate(json.endDate);
       }
     } finally {
-      setSearching(false);
+      setLoadingData(false);
     }
   }, []);
 
   useEffect(() => {
     fetchStatus();
-    loadData("");
+    loadAllData();
     const interval = setInterval(fetchStatus, STATUS_POLL_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [fetchStatus, loadData]);
+  }, [fetchStatus, loadAllData]);
+
+  // The moment a running scrape flips to done, pull the fresh dataset
+  // automatically — no need to notice and manually reload.
+  useEffect(() => {
+    if (status?.status === "done" && prevStatusRef.current === "running") {
+      loadAllData();
+    }
+    prevStatusRef.current = status?.status ?? null;
+  }, [status, loadAllData]);
 
   const isRunning = status?.status === "running";
   const dateRangeInvalid = !startDate || !endDate || endDate < startDate;
+
+  // Ticks once a second while a scrape is running, purely to drive the
+  // live "running for Xm Ys" display below.
+  useEffect(() => {
+    if (!isRunning) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [isRunning]);
 
   const handleTrigger = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -111,15 +144,18 @@ const TelcoSmsConsumptionPage = () => {
     }
   };
 
-  const handleSearch = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    loadData(query);
-  };
-
   const columns = rows.length > 0 ? Object.keys(rows[0]) : [];
 
+  const filteredRows = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return rows;
+    return rows.filter((row) =>
+      Object.values(row).some((value) => value.toLowerCase().includes(q)),
+    );
+  }, [rows, query]);
+
   return (
-    <div>
+    <div className="min-w-0">
       <h1 className="text-2xl font-semibold tracking-tight">
         Telco SMS Consumption
       </h1>
@@ -127,11 +163,14 @@ const TelcoSmsConsumptionPage = () => {
         Trigger a manual scrape for a date range, then search the results.
       </p>
 
-      <div className="mt-4 border rounded-xl p-6 space-y-6">
+      <div className="mt-4 border rounded-xl p-4 sm:p-6 space-y-6">
         <div>
           <h2 className="text-sm font-semibold mb-3">Start a scrape</h2>
-          <form onSubmit={handleTrigger} className="flex items-end gap-3">
-            <Field>
+          <form
+            onSubmit={handleTrigger}
+            className="flex flex-col sm:flex-row sm:items-end gap-3"
+          >
+            <Field className="w-full sm:w-auto">
               <FieldLabel htmlFor="start-date">Start date</FieldLabel>
               <Input
                 id="start-date"
@@ -141,7 +180,7 @@ const TelcoSmsConsumptionPage = () => {
                 disabled={isRunning}
               />
             </Field>
-            <Field>
+            <Field className="w-full sm:w-auto">
               <FieldLabel htmlFor="end-date">End date</FieldLabel>
               <Input
                 id="end-date"
@@ -153,6 +192,7 @@ const TelcoSmsConsumptionPage = () => {
             </Field>
             <Button
               type="submit"
+              className="w-full sm:w-auto"
               disabled={isRunning || triggering || dateRangeInvalid}
             >
               {triggering ? "Starting..." : "Start Scrape"}
@@ -185,33 +225,41 @@ const TelcoSmsConsumptionPage = () => {
               ({status.startDate} to {status.endDate})
             </>
           )}
+          {status?.status === "running" && status.startedAt && (
+            <> — running for {formatDuration(now - status.startedAt)}.</>
+          )}
           {status?.status === "done" && status.rowCount !== undefined && (
             <> — {status.rowCount} rows.</>
+          )}
+          {status?.status === "done" &&
+            status.startedAt &&
+            status.finishedAt && (
+              <> Took {formatDuration(status.finishedAt - status.startedAt)}.</>
+            )}
+          {status?.status === "failed" && status.startedAt && status.finishedAt && (
+            <> Ran for {formatDuration(status.finishedAt - status.startedAt)} before failing.</>
           )}
           {status?.status === "failed" && status.error && (
             <div className="mt-1">{status.error}</div>
           )}
         </div>
 
-        <form onSubmit={handleSearch} className="flex items-end gap-3">
-          <Field className="flex-1">
-            <FieldLabel htmlFor="telco-sms-search">Search</FieldLabel>
-            <Input
-              id="telco-sms-search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Filter by account, telco, sender number…"
-              disabled={isRunning}
-            />
-          </Field>
-          <Button type="submit" disabled={isRunning || searching}>
-            {searching ? "Searching..." : "Search"}
-          </Button>
-        </form>
+        <Field className="w-full">
+          <FieldLabel htmlFor="telco-sms-search">Search</FieldLabel>
+          <Input
+            id="telco-sms-search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Filter by account, telco, sender number…"
+            disabled={isRunning || rows.length === 0}
+          />
+        </Field>
 
-        {rows.length > 0 ? (
+        {loadingData ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : rows.length > 0 ? (
           <div className="space-y-2">
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               {scrapedAt && (
                 <span>
                   Last pull:{" "}
@@ -233,39 +281,40 @@ const TelcoSmsConsumptionPage = () => {
               )}
             </div>
             <div className="overflow-x-auto border rounded-lg">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-muted/50">
+              <Table className="w-full text-sm">
+                <TableHeader>
+                  <TableRow className="border-b bg-muted/50">
                     {columns.map((col) => (
-                      <th
+                      <TableHead
                         key={col}
                         className="text-left font-semibold px-3 py-2 whitespace-nowrap"
                       >
                         {col}
-                      </th>
+                      </TableHead>
                     ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((row, i) => (
-                    <tr key={i} className="border-b last:border-0">
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredRows.map((row, i) => (
+                    <TableRow key={i} className="border-b last:border-0">
                       {columns.map((col) => (
-                        <td key={col} className="px-3 py-2 whitespace-nowrap">
+                        <TableCell
+                          key={col}
+                          className="px-3 py-2 whitespace-nowrap"
+                        >
                           {row[col]}
-                        </td>
+                        </TableCell>
                       ))}
-                    </tr>
+                    </TableRow>
                   ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
               <div className="px-3 py-2 text-xs text-muted-foreground">
-                {totalRows} row{totalRows === 1 ? "" : "s"}
-                {truncated ? ` (showing first ${rows.length})` : ""}
+                {filteredRows.length} of {rows.length} row
+                {rows.length === 1 ? "" : "s"}
               </div>
             </div>
           </div>
-        ) : searching ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
         ) : (
           <p className="text-sm text-muted-foreground">
             No data yet — start a scrape above.

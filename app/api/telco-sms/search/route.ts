@@ -1,12 +1,9 @@
 import { readReportCache, REDIS_KEYS } from "@/lib/redis";
 import type { TelcoSmsDataEntry } from "@/types";
 
-const MAX_RESULTS = 200;
-
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const query = (searchParams.get("q") ?? "").trim().toLowerCase();
-
+// Returns the full scraped dataset once — searching/filtering happens
+// entirely client-side against this, no per-keystroke server round trip.
+export async function GET() {
   const cache = await readReportCache<TelcoSmsDataEntry>(
     REDIS_KEYS.telcoSmsData,
   );
@@ -15,8 +12,6 @@ export async function GET(request: Request) {
     return Response.json({
       success: true,
       rows: [],
-      totalRows: 0,
-      truncated: false,
       startDate: null,
       endDate: null,
       scrapedAt: null,
@@ -24,23 +19,12 @@ export async function GET(request: Request) {
   }
 
   const { rows, startDate, endDate } = cache.data;
-  const scrapedAt = cache.scrapedAt;
-
-  const matches = query
-    ? rows.filter((row) =>
-        Object.values(row).some((value) =>
-          value.toLowerCase().includes(query),
-        ),
-      )
-    : rows;
 
   return Response.json({
     success: true,
-    rows: matches.slice(0, MAX_RESULTS),
-    totalRows: matches.length,
-    truncated: matches.length > MAX_RESULTS,
+    rows,
     startDate,
     endDate,
-    scrapedAt,
+    scrapedAt: cache.scrapedAt,
   });
 }
