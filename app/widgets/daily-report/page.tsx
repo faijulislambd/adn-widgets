@@ -29,22 +29,6 @@ import {
   selectIsDailyReportRefreshing,
 } from "@/store/daily-report-slice";
 
-const StatusCardSkeleton = () => (
-  <div className="flex flex-col items-center gap-y-2 justify-center w-full px-4 py-6 bg-gray-100 rounded-lg shadow-md animate-pulse">
-    <div className="h-3 w-20 bg-gray-300 rounded" />
-    <div className="h-12 w-12 rounded-full bg-gray-300" />
-    <div className="h-8 w-16 bg-gray-300 rounded" />
-  </div>
-);
-
-const TableRowSkeleton = () => (
-  <div className="flex gap-2 py-2 animate-pulse">
-    <div className="h-4 w-4 bg-gray-200 rounded" />
-    <div className="h-4 flex-1 bg-gray-200 rounded" />
-    <div className="h-4 w-16 bg-gray-200 rounded" />
-  </div>
-);
-
 const DailyReportPage = () => {
   const dispatch = useAppDispatch();
   const { smsData: dailyReportData, metlifeData: metlifeReport } =
@@ -133,34 +117,7 @@ const DailyReportPage = () => {
           </div>
         </div>
 
-        {loading || refreshing ? (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="col-span-1 lg:col-span-3 space-y-9">
-              <div>
-                <div className="h-5 w-48 bg-gray-200 rounded animate-pulse mb-3" />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-2">
-                  <StatusCardSkeleton />
-                  <StatusCardSkeleton />
-                  <StatusCardSkeleton />
-                </div>
-              </div>
-              <div>
-                <div className="h-5 w-56 bg-gray-200 rounded animate-pulse mb-3" />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-2">
-                  <StatusCardSkeleton />
-                  <StatusCardSkeleton />
-                  <StatusCardSkeleton />
-                </div>
-              </div>
-            </div>
-            <div className="col-span-1 lg:col-span-2">
-              <div className="h-5 w-36 bg-gray-200 rounded animate-pulse mb-3" />
-              {Array.from({ length: 10 }).map((_, i) => (
-                <TableRowSkeleton key={i} />
-              ))}
-            </div>
-          </div>
-        ) : dailyReportData && metlifeReport ? (
+        {dailyReportData && metlifeReport ? (
           <div
             className="grid grid-cols-1 lg:grid-cols-5 gap-6"
             ref={reportRef}
@@ -179,6 +136,7 @@ const DailyReportPage = () => {
                     borderColor="border-green-600"
                     textColor="text-green-600"
                     icon={<Check className="size-6" />}
+                    refreshing={refreshing}
                   />
                   <StatusCard
                     title="Failed"
@@ -187,6 +145,7 @@ const DailyReportPage = () => {
                     borderColor="border-red-600"
                     textColor="text-red-600"
                     icon={<AlertTriangle className="size-6" />}
+                    refreshing={refreshing}
                   />
                   <StatusCard
                     title="Pending"
@@ -195,6 +154,7 @@ const DailyReportPage = () => {
                     borderColor="border-amber-500"
                     textColor="text-amber-500"
                     icon={<Clock className="size-6" />}
+                    refreshing={refreshing}
                   />
                 </div>
               </div>
@@ -211,6 +171,7 @@ const DailyReportPage = () => {
                     borderColor="border-green-600"
                     textColor="text-green-600"
                     icon={<Lock className="size-6" />}
+                    refreshing={refreshing}
                   />
                   <StatusCard
                     title="Nonmask"
@@ -219,6 +180,7 @@ const DailyReportPage = () => {
                     borderColor="border-amber-500"
                     textColor="text-amber-500"
                     icon={<Unlock className="size-6" />}
+                    refreshing={refreshing}
                   />
                   <StatusCard
                     title="International"
@@ -227,6 +189,7 @@ const DailyReportPage = () => {
                     borderColor="border-blue-500"
                     textColor="text-blue-500"
                     icon={<Globe2 className="size-6" />}
+                    refreshing={refreshing}
                   />
                 </div>
               </div>
@@ -241,7 +204,9 @@ const DailyReportPage = () => {
             </div>
           </div>
         ) : (
-          <p>No data available.</p>
+          <p className="text-sm text-muted-foreground">
+            {loading ? "Loading…" : "No data available."}
+          </p>
         )}
       </div>
     </div>

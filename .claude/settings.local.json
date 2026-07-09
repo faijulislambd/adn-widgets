@@ -103,7 +103,8 @@
       "Bash(node --check .github/scripts/scrape-metlife.mjs)",
       "Bash(rm -rf .next)",
       "Bash(echo \"EXIT_CODE:$?\")",
-      "Bash(node --check .github/scripts/scrape-telco-sms.mjs)"
+      "Bash(node --check .github/scripts/scrape-telco-sms.mjs)",
+      "Bash(npx prettier *)"
     ]
   }
 }

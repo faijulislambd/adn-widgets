@@ -12,13 +12,6 @@ import {
   selectIsDailyReportRefreshing,
 } from "@/store/daily-report-slice";
 
-const ChartCardSkeleton = () => (
-  <div className="border rounded-lg shadow-lg p-4 animate-pulse">
-    <div className="h-4 w-36 bg-gray-200 rounded mb-4" />
-    <div className="w-full aspect-square bg-gray-200 rounded-full" />
-  </div>
-);
-
 const Charts = () => {
   const dispatch = useAppDispatch();
   const { smsData } = useAppSelector(selectDailyReport);
@@ -36,17 +29,13 @@ const Charts = () => {
     </button>
   );
 
-  if (loading || refreshing) {
+  if (!smsData) {
     return (
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <ChartCardSkeleton />
-        <ChartCardSkeleton />
-        <ChartCardSkeleton />
-      </section>
+      <p className="text-sm text-muted-foreground">
+        {loading ? "Loading…" : "Failed to load data."}
+      </p>
     );
   }
-
-  if (!smsData) return <div>Failed to load data.</div>;
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-3 gap-4">

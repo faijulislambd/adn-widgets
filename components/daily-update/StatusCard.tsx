@@ -5,6 +5,7 @@ const StatusCard = ({
   borderColor,
   textColor,
   icon,
+  refreshing = false,
 }: {
   title: string;
   value: string | number;
@@ -12,6 +13,7 @@ const StatusCard = ({
   borderColor: string;
   textColor: string;
   icon: React.ReactNode;
+  refreshing?: boolean;
 }) => {
   return (
     <div
@@ -27,7 +29,11 @@ const StatusCard = ({
       >
         {icon}
       </div>
-      <span className={`text-3xl font-semibold ${textColor}`}>{value}</span>
+      <span
+        className={`text-3xl font-semibold ${textColor} ${refreshing ? "animate-pulse" : ""}`}
+      >
+        {value}
+      </span>
     </div>
   );
 };

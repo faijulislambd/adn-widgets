@@ -7,9 +7,6 @@ import {
   Chart as ChartJS,
   Legend,
   LinearScale,
-  LineController,
-  LineElement,
-  PointElement,
   Tooltip,
   TooltipItem,
 } from "chart.js";
@@ -29,12 +26,24 @@ ChartJS.register(
   LinearScale,
   BarController,
   BarElement,
-  LineController,
-  PointElement,
-  LineElement,
   Tooltip,
   Legend,
 );
+
+// Show each company's real top clients stacked to their actual SMS count
+// (not an equal division of the company total) — the bar's full height is
+// still the company total, it's just built from genuine per-client
+// numbers instead of an average.
+const MAX_SEGMENTS = 6;
+const SEGMENT_COLORS = [
+  "#2563eb",
+  "#0ea5e9",
+  "#22c55e",
+  "#f59e0b",
+  "#a855f7",
+  "#ec4899",
+];
+const OTHERS_COLOR = "#9ca3af";
 
 const ClientChart = () => {
   const dispatch = useAppDispatch();
@@ -44,35 +53,38 @@ const ClientChart = () => {
 
   const handleManualRefresh = () => dispatch(fetchDailyReport(true));
 
-  const topClients = groupCompanies(smsData?.topClients ?? []);
-  const labels = topClients.map((company) => company.company);
-  const totalSmsData = topClients.map((company) => company.totalSMS);
-  const smsPerClientData = topClients.map((company) => {
-    const clientCount = company.users?.length ?? 0;
-    return clientCount > 0 ? Math.round(company.totalSMS / clientCount) : 0;
-  });
+  const companies = groupCompanies(smsData?.topClients ?? []).map(
+    (company) => ({
+      ...company,
+      sortedUsers: [...(company.users ?? [])].sort((a, b) => b.sms - a.sms),
+    }),
+  );
+
+  const labels = companies.map((company) => company.company);
+
+  const segmentDatasets = Array.from({ length: MAX_SEGMENTS }, (_, i) => ({
+    type: "bar" as const,
+    label: `Client ${i + 1}`,
+    data: companies.map((company) => company.sortedUsers[i]?.sms ?? 0),
+    backgroundColor: SEGMENT_COLORS[i],
+    stack: "clients",
+  }));
+
+  const othersDataset = {
+    type: "bar" as const,
+    label: "Others",
+    data: companies.map((company) =>
+      company.sortedUsers
+        .slice(MAX_SEGMENTS)
+        .reduce((sum, user) => sum + user.sms, 0),
+    ),
+    backgroundColor: OTHERS_COLOR,
+    stack: "clients",
+  };
 
   const chartData = {
     labels,
-    datasets: [
-      {
-        type: "bar" as const,
-        label: "Total SMS",
-        data: totalSmsData,
-        backgroundColor: "#2563eb",
-        yAxisID: "y",
-      },
-      {
-        type: "line" as const,
-        label: "SMS per Client",
-        data: smsPerClientData,
-        borderColor: "#ef4444",
-        backgroundColor: "#ef4444",
-        tension: 0.3,
-        yAxisID: "y1",
-        ticks: { display: false },
-      },
-    ],
+    datasets: [...segmentDatasets, othersDataset],
   };
 
   const options = {
@@ -81,18 +93,36 @@ const ClientChart = () => {
     interaction: { mode: "index" as const, intersect: false },
     plugins: {
       legend: {
-        position: "bottom" as const,
-        labels: { font: { size: 11 }, padding: 12, boxWidth: 12 },
+        display: false,
       },
       tooltip: {
+        filter: (ctx: TooltipItem<"bar">) => (ctx.parsed.y ?? 0) > 0,
         callbacks: {
-          label: (ctx: TooltipItem<"bar" | "line">) =>
-            ` ${ctx.dataset.label}: ${(ctx.parsed.y ?? 0).toLocaleString()}`,
+          label: (ctx: TooltipItem<"bar">) => {
+            const company = companies[ctx.dataIndex];
+            const value = ctx.parsed.y ?? 0;
+            if (ctx.datasetIndex === MAX_SEGMENTS) {
+              const othersCount = Math.max(
+                company.sortedUsers.length - MAX_SEGMENTS,
+                0,
+              );
+              return ` Others (${othersCount} clients): ${value.toLocaleString()}`;
+            }
+            const client = company.sortedUsers[ctx.datasetIndex];
+            return client ? ` ${client.user}: ${value.toLocaleString()}` : "";
+          },
+          footer: (items: TooltipItem<"bar">[]) => {
+            const total = items.reduce(
+              (sum, item) => sum + (item.parsed.y ?? 0),
+              0,
+            );
+            return `Total: ${total.toLocaleString()}`;
+          },
         },
       },
       // chartjs-plugin-datalabels is registered globally by sibling charts
       // (SFPChart/AllMaskChart) — explicitly opt out here so it doesn't draw
-      // raw values on every bar/point; tooltip-on-hover is the only place
+      // raw values on every bar segment; tooltip-on-hover is the only place
       // numbers should show.
       datalabels: {
         display: false,
@@ -100,27 +130,22 @@ const ClientChart = () => {
     },
     scales: {
       x: {
+        stacked: true,
         ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 0 },
       },
       y: {
-        type: "linear" as const,
-        position: "left" as const,
+        stacked: true,
         beginAtZero: true,
         title: { display: true, text: "Total SMS" },
-      },
-      y1: {
-        type: "linear" as const,
-        position: "right" as const,
-        beginAtZero: true,
-        title: { display: true, text: "SMS per Client" },
-        grid: { drawOnChartArea: false },
       },
     },
   };
 
-  if (loading || refreshing) {
+  if (!smsData) {
     return (
-      <div className="w-full aspect-[2/1] bg-gray-200 rounded-lg animate-pulse" />
+      <p className="text-sm text-muted-foreground">
+        {loading ? "Loading…" : "Failed to load data."}
+      </p>
     );
   }
 

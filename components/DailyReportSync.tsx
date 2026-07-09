@@ -14,10 +14,14 @@ const DailyReportSync = () => {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    // Force a live scrape on app load rather than trusting whatever's
-    // cached — the background GitHub Actions cron can lag by hours, so the
-    // first visitor of a stretch is what actually guarantees fresh data.
-    dispatch(fetchDailyReport(true));
+    // Preload whatever's already cached first, so the UI has real data to
+    // paint immediately instead of showing nothing while it waits. Then
+    // quietly force a live scrape in the background — GitHub's cron can lag
+    // by hours, so this still guarantees freshness, it just doesn't block
+    // first paint on it.
+    dispatch(fetchDailyReport(false)).then(() => {
+      dispatch(fetchDailyReport(true));
+    });
 
     intervalRef.current = setInterval(() => {
       dispatch(fetchDailyReport(false));
