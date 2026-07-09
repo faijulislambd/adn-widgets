@@ -110,7 +110,10 @@ function Sidebar({
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main
-      className={cn("relative flex min-h-svh flex-1 flex-col", className)}
+      className={cn(
+        "relative flex min-h-svh min-w-0 flex-1 flex-col",
+        className,
+      )}
       {...props}
     />
   )

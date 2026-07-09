@@ -236,9 +236,17 @@ const TelcoSmsConsumptionPage = () => {
             status.finishedAt && (
               <> Took {formatDuration(status.finishedAt - status.startedAt)}.</>
             )}
-          {status?.status === "failed" && status.startedAt && status.finishedAt && (
-            <> Ran for {formatDuration(status.finishedAt - status.startedAt)} before failing.</>
-          )}
+          {status?.status === "failed" &&
+            status.startedAt &&
+            status.finishedAt && (
+              <>
+                {" "}
+                Ran for {formatDuration(
+                  status.finishedAt - status.startedAt,
+                )}{" "}
+                before failing.
+              </>
+            )}
           {status?.status === "failed" && status.error && (
             <div className="mt-1">{status.error}</div>
           )}
@@ -280,7 +288,7 @@ const TelcoSmsConsumptionPage = () => {
                 </>
               )}
             </div>
-            <div className="overflow-x-auto border rounded-lg">
+            <div className="overflow-auto max-h-[45rem] max-w-full border rounded-lg">
               <Table className="w-full text-sm">
                 <TableHeader>
                   <TableRow className="border-b bg-muted/50">
